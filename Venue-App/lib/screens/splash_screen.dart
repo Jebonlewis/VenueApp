@@ -23,22 +23,41 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> checkTokenAndNavigate() async {
     String? token = await TokenManager().getToken();
     bool isUserToken = false;
+    bool isVendorToken=false;
+    bool isVenueToken=false;
 
     if (token != null) {
-      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      String? userType = decodedToken['userType'];
-      if (userType == 'user') {
-        isUserToken = true;
-      }
-    }
-
-    if (_isTapped) {
-      String initialRoute =
-          token != null ? (isUserToken ? '/home' : '/vendorHome') : '/chooseScreen';
-      Navigator.pushReplacementNamed(context, initialRoute);
-    }
+  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+  String? userType = decodedToken['userType'];
+  if (userType == 'user') {
+    isUserToken = true;
   }
+  else if (userType == 'vendor') {
+    isVendorToken = true;
+  }
+  else if (userType == 'venue') {
+    isVenueToken = true;
+  }
+}
 
+if (_isTapped) {
+  String initialRoute;
+  if (token != null) {
+    if (isUserToken) {
+      initialRoute = '/userHome';
+    } else if (isVendorToken) {
+      initialRoute = '/vendorHome';
+    } else if (isVenueToken) {
+      initialRoute = '/venueHome';
+    } else {
+      initialRoute = '/chooseScreen'; // default route if userType is unknown
+    }
+  } else {
+    initialRoute = '/chooseScreen'; // default route if token is null
+  }
+  Navigator.pushReplacementNamed(context, initialRoute);
+}
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

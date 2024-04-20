@@ -80,6 +80,7 @@ import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/search_screen.dart';
 import 'package:venue/screens/splash_screen.dart';
 import 'package:venue/screens/vendor/vendor_login.dart';
+import 'package:venue/screens/venue/home_screen.dart';
 import 'package:venue/screens/welcome_screen.dart';
 import 'package:venue/screens/vendor/vendor_register.dart';
 void main() async {
@@ -104,8 +105,9 @@ class MyApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => SplashScreen(),
-        '/home': (context) => ExploreScreen(), // User home screen
-        '/vendorHome': (context) => BranchDetails(), // Vendor home screen
+        '/userHome': (context) => ExploreScreen(), // User home screen
+        '/vendorHome': (context) => BranchDetails(),
+        '/venueHome':(context) => HomeVenue(), // Vendor home screen
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {
