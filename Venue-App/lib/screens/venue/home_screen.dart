@@ -1,4 +1,3 @@
-// home_venue.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:venue/components/custom_button.dart';
@@ -16,6 +15,8 @@ class _HomeVenueState extends State<HomeVenue> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    double paddingleft = screenSize.width * 0.05;
     return Scaffold(
       body: Container(
         constraints: BoxConstraints.expand(),
@@ -32,6 +33,37 @@ class _HomeVenueState extends State<HomeVenue> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text(
+              'Venue Name',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 6),
+            Container(
+              padding: EdgeInsets.only(left: paddingleft),
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.5),
+                ),
+              ),
+              child: Center(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "Enter Venue Name",
+                    hintStyle: TextStyle(
+                      color: Color.fromARGB(255, 202, 200, 200),
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Text(
               'ADD NUMBER OF HALLS',
               textAlign: TextAlign.center,
@@ -81,14 +113,15 @@ class _HomeVenueState extends State<HomeVenue> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FormPage(numberOfHalls: numberOfHalls),
+                      builder: (context) =>
+                          FormPage(numberOfHalls: numberOfHalls),
                     ),
                   );
                 } else {
                   // Handle case when no halls are entered
                 }
               },
-              text: 'NEXT',
+              text: 'GO',
             ),
           ],
         ),

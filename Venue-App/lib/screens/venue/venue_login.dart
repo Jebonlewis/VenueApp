@@ -11,6 +11,8 @@ import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/vendor/vendor_register.dart';
 import 'package:venue/screens/reset_password.dart';
+import 'package:venue/screens/venue/home_screen.dart';
+import 'package:venue/screens/venue/venue_register.dart';
 import 'package:venue/screens/welcome_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -53,7 +55,7 @@ class _LoginScreenState extends State<VenueLoginScreen> {
     }
     return null; // No error
   }
-Future<void> vendorLogin() async {
+Future<void> venueLogin() async {
     // Extract email
     // and password from text controllers
     print("called");
@@ -78,7 +80,7 @@ Future<void> vendorLogin() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.0.103:443/venue/login'),
+       Uri.parse('https://192.168.0.102:443/venue/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
@@ -91,7 +93,7 @@ Future<void> vendorLogin() async {
       Map<String, dynamic> responseMap = jsonDecode(responseData);
       String token = responseMap['token']; // Extract token from response
       // Perform actions based on successful login
-      // print(responseMap['userType']);
+      print(responseMap['userType']);
       // String fullname = responseMap['fullname']; // Extract fullname from response
        // Print fullname
      // print('Fullname: $fullname');
@@ -100,7 +102,7 @@ Future<void> vendorLogin() async {
       print('Login successful, Token: $token');
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OverlayFilter()),
+          MaterialPageRoute(builder: (context) => HomeVenue()),
         );
       } else {
         // Login failed, handle the error
@@ -283,7 +285,7 @@ Future<void> vendorLogin() async {
                             // Check if there's any validation error
                             if (_emailValidationError == null) {
                               // If no validation error, proceed with signing in
-                               vendorLogin();
+                               venueLogin();
                               // NavigationUtils.navigateToPage(
                               //     context, WelcomeScreen());
                             }
@@ -373,7 +375,7 @@ Future<void> vendorLogin() async {
                                   ..onTap = () {
                                     NavigationUtils.navigateToPage(
                                       context,
-                                      SignupVendor(),
+                                      SignupVenue(),
                                     );
                                   },
                               ),

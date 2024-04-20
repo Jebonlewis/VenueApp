@@ -79,7 +79,7 @@ Future<void> vendorLogin() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.84.84:443/vendor/login'),
+       Uri.parse('https://192.168.0.102:443/vendor/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
@@ -92,7 +92,7 @@ Future<void> vendorLogin() async {
       Map<String, dynamic> responseMap = jsonDecode(responseData);
       String token = responseMap['token']; // Extract token from response
       // Perform actions based on successful login
-      // print(responseMap['userType']);
+      print(responseMap['userType']);
       // String fullname = responseMap['fullname']; // Extract fullname from response
        // Print fullname
      // print('Fullname: $fullname');

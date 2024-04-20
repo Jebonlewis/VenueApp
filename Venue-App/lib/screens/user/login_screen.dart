@@ -91,7 +91,7 @@ Future<void> _login() async {
       Map<String, dynamic> responseMap = jsonDecode(responseData);
       String token = responseMap['token']; // Extract token from response
       // Perform actions based on successful login
-      // print(responseMap['userType']);
+      print(responseMap['userType']);
       // String fullname = responseMap['fullname']; // Extract fullname from response
        // Print fullname
      // print('Fullname: $fullname');

@@ -38,7 +38,7 @@ routerVendorLogin.post('/', async (req, res, next) => {
     }
     
     console.log(vendor.authenticationType);
-    const token = authService.generateToken(vendor._id,vendor.email,vendor.fullname,vendor.authenticationType,"vendor");
+    const token = authService.generateToken(vendor._id,vendor.email,vendor.fullname,vendor.authenticationType,vendor.serviceType,"vendor");
     res.status(200).json({ token: token });
   } catch (err) {
     console.error('Error occurred during login:', err);

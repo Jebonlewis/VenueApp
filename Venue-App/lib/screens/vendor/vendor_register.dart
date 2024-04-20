@@ -105,7 +105,7 @@ class _SignupVendorState extends State<SignupVendor> {
 
   Future<void> vendorsignUp() async {
   //   // Create a JSON object with the user data
-       print('called');
+       print('vendor called');
   //   var vendorData = {
        var vendorData = {
       'fullname': _nameController.text.trim(),
@@ -125,7 +125,7 @@ class _SignupVendorState extends State<SignupVendor> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.84.84:443/vendor/register'),
+        Uri.parse('https://192.168.0.102:443/vendor/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);

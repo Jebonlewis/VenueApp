@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http; // Import the http package
 import 'dart:io';
 
 import 'package:venue/screens/vendor/vendor_login.dart';
+import 'package:venue/screens/venue/venue_login.dart';
 
 class SignupVenue extends StatefulWidget {
   const SignupVenue({super.key});
@@ -21,15 +22,7 @@ class SignupVenue extends StatefulWidget {
 }
 
 class _SignupVenueState extends State<SignupVenue> {
-   String? selectedCategory;
-  List<String> CategoryList = [
-    'Birthday',
-    'Music',
-    'Wedding',
-    'Corporate',
-    
-    // Add more cities as needed
-  ];
+   
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -105,19 +98,19 @@ class _SignupVenueState extends State<SignupVenue> {
 
   Future<void> venuesignUp() async {
   //   // Create a JSON object with the user data
-       print('called');
+       print('venue called');
   //   var vendorData = {
        var vendorData = {
       'fullname': _nameController.text.trim(),
       'email': _emailController.text.trim(),
       'password': _passwordController.text.trim(),
       'confirmPassword': _confirmPasswordController.text.trim(),
-      'serviceType': selectedCategory,
+    
       // Add other necessary data if needed
     };
 
     var jsonData = jsonEncode(vendorData);
-    print('vendordata ${vendorData}');
+    print('venuedata ${vendorData}');
 
     try {
       var httpClient = HttpClient();
@@ -125,7 +118,7 @@ class _SignupVenueState extends State<SignupVenue> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.0.103:443/venue/register'),
+        Uri.parse('https://192.168.0.102:443/venue/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);
@@ -435,37 +428,7 @@ class _SignupVenueState extends State<SignupVenue> {
                           )
                         : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
                   ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                   Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Select Categories",
-                        // hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      value: selectedCategory,
-                      onChanged: (String? value) {
-                        setState(() {
-                          selectedCategory = value;
-                        });
-                      },
-                      items: CategoryList.map((String city) {
-                        return DropdownMenuItem<String>(
-                          value: city,
-                          child: Text(city),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                 
                   SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   Padding(
                     padding: EdgeInsets.only(
@@ -583,7 +546,7 @@ class _SignupVenueState extends State<SignupVenue> {
                                   ..onTap = () {
                                     NavigationUtils.navigateToPage(
                                       context,
-                                      VendorLoginScreen(),
+                                      VenueLoginScreen(),
                                     );
                                   },
                               ),

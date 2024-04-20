@@ -29,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (token != null) {
   Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
   String? userType = decodedToken['userType'];
+  print('user type ${userType}');
   if (userType == 'user') {
     isUserToken = true;
   }
