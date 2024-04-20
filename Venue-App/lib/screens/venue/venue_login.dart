@@ -7,9 +7,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/explore_screen.dart';
 import 'package:venue/screens/logout.dart';
-import 'package:venue/screens/register_screen.dart';
+import 'package:venue/screens/overlay_filter.dart';
+import 'package:venue/screens/vendor/vendor_register.dart';
 import 'package:venue/screens/reset_password.dart';
 import 'package:venue/screens/welcome_screen.dart';
 import 'package:http/http.dart' as http;
@@ -17,17 +17,17 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import 'dart:io'; 
 import 'package:venue/components/token_manager.dart';
-class LoginScreen extends StatefulWidget { 
+class VenueLoginScreen extends StatefulWidget { 
   //const LoginScreen({super.key});
    final String? responseBody; //  optional
 
-  const LoginScreen({Key? key, this.responseBody}) : super(key: key);
+  const VenueLoginScreen({Key? key, this.responseBody}) : super(key: key);
  
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<VenueLoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<VenueLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TokenManager _tokenManager = TokenManager();
@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     return null; // No error
   }
-Future<void> _login() async {
+Future<void> vendorLogin() async {
     // Extract email
     // and password from text controllers
     print("called");
@@ -78,7 +78,7 @@ Future<void> _login() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.0.102:443/login'),
+       Uri.parse('https://192.168.0.103:443/venue/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
@@ -100,7 +100,7 @@ Future<void> _login() async {
       print('Login successful, Token: $token');
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ExploreScreen()),
+          MaterialPageRoute(builder: (context) => OverlayFilter()),
         );
       } else {
         // Login failed, handle the error
@@ -283,7 +283,7 @@ Future<void> _login() async {
                             // Check if there's any validation error
                             if (_emailValidationError == null) {
                               // If no validation error, proceed with signing in
-                               _login();
+                               vendorLogin();
                               // NavigationUtils.navigateToPage(
                               //     context, WelcomeScreen());
                             }
@@ -373,7 +373,7 @@ Future<void> _login() async {
                                   ..onTap = () {
                                     NavigationUtils.navigateToPage(
                                       context,
-                                      SignUp(),
+                                      SignupVendor(),
                                     );
                                   },
                               ),

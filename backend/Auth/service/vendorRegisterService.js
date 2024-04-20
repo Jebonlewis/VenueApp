@@ -7,9 +7,8 @@ const { vendorRegisterValidation} = require('../validators/vendorValidators');
 const {sendVerificationEmail}=require('../utils/mailUtil');
 const config=require('../config/authConfig');
 const multer = require('multer');
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const { GridFSBucket } = require('mongodb');
+const mongoose = require('mongoose');
 
 const verificationTokens = {};
 
@@ -90,49 +89,30 @@ async function verifyToken(token) {
     }
 }
 
-// async function vendorRegister(vendorData) {
-//     try {
-//       // Extract the details needed for vendor registration
-//       const { fullname, email, password, authenticationType, serviceType, branchDetails } = vendorData;
-  
-//       // Create a new vendor instance
-//       const newVendor = new Vendor({
-//         fullname,
-//         email,
-//         password,
-//         authenticationType,
-//         serviceType,
-//         // Extract branch details
-//         branchName: branchDetails.branchName,
-//         aboutBranch: branchDetails.aboutBranch,
-//         address: branchDetails.address,
-//         city: branchDetails.city,
-//         state: branchDetails.state,
-//         country: branchDetails.country
-//       });
-  
-//       // Save the vendor to the database
-//       const savedVendor = await newVendor.save();
-//       return { success: true, vendor: savedVendor };
-//     } catch (error) {
-//       console.error('Error occurred during vendor registration:', error);
-//       throw error; // Throw the error to be caught by the route handler
-//     }
-//   }
-  
 
-// vendorRegisterService.js
 
 
 async function updateBranchDetailsWithImage(vendorId, branchDetails, imageFile) {
     try {
         // Find the vendor by ID
+        await mongoose.connect(config.db.dbUrl);
+
+        // Once connected, initialize GridFSBucket
+        const { GridFSBucket } = require('mongodb');
+        const gfs = new GridFSBucket(mongoose.connection.db, {
+          bucketName: 'vendorimage'
+        });
+
+    // Now you can use `gfs` for file storage operations
+
+        console.log("vendorId 2  ",vendorId);
         const vendor = await Vendor.findById(vendorId);
+
         if (!vendor) {
             throw new Error('Vendor not found');
         }
-
-        // Update branch details
+        branchDetails = JSON.parse(branchDetails);
+        
         vendor.branchName = branchDetails.branchName;
         vendor.aboutBranch = branchDetails.aboutBranch;
         vendor.address = branchDetails.address;
@@ -141,8 +121,7 @@ async function updateBranchDetailsWithImage(vendorId, branchDetails, imageFile) 
         vendor.country = branchDetails.country;
 
         // Store image in GridFS
-        const writeStream = gfs.createWriteStream({
-            filename: imageFile.originalname,
+        const writeStream = gfs.openUploadStream(imageFile.originalname, {
             metadata: { vendorId: vendorId }
         });
         writeStream.write(imageFile.buffer);
@@ -164,4 +143,3 @@ module.exports = {
     updateBranchDetailsWithImage
     //vendorRegister
 };
-

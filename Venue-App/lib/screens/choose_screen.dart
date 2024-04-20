@@ -2,13 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/branch_details.dart';
-import 'package:venue/screens/login_screen.dart';
-import 'package:venue/screens/register_screen.dart';
-import 'package:venue/screens/vendor_login.dart';
-import 'package:venue/screens/vendor_register.dart';
-import 'package:venue/screens/venue_login.dart';
-import 'package:venue/screens/venue_register.dart';
+import 'package:venue/screens/vendor/branch_details.dart';
+import 'package:venue/screens/user/login_screen.dart';
+import 'package:venue/screens/user/register_screen.dart';
+import 'package:venue/screens/vendor/vendor_login.dart';
+import 'package:venue/screens/vendor/vendor_register.dart';
+import 'package:venue/screens/venue/venue_login.dart';
+import 'package:venue/screens/venue/venue_register.dart';
 class ChooseScreen extends StatefulWidget {
   const ChooseScreen({Key? key}) : super(key: key);
 

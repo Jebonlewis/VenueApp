@@ -35,7 +35,6 @@ const vendorRegisterValidation = Joi.object({
     city: Joi.string().default(null),
     state: Joi.string().default(null),
     country: Joi.string().default(null),
-    image: Joi.string().default(null)
     
   });
   

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
 import 'package:venue/components/snack_bar.dart';
-import 'package:venue/screens/branch_details.dart';
+import 'package:venue/screens/vendor/branch_details.dart';
 import 'package:venue/screens/explore_screen.dart';
 //import 'package:venue/screens/login_screen.dart';
 import 'package:venue/screens/search_screen.dart';
@@ -11,16 +11,16 @@ import 'dart:convert'; // Import this for JSON encoding
 import 'package:http/http.dart' as http; // Import the http package
 import 'dart:io';
 
-import 'package:venue/screens/vendor_login.dart';
+import 'package:venue/screens/vendor/vendor_login.dart';
 
-class SignupVendor extends StatefulWidget {
-  const SignupVendor({super.key});
+class SignupVenue extends StatefulWidget {
+  const SignupVenue({super.key});
 
   @override
-  State<SignupVendor> createState() => _SignupVendorState();
+  State<SignupVenue> createState() => _SignupVenueState();
 }
 
-class _SignupVendorState extends State<SignupVendor> {
+class _SignupVenueState extends State<SignupVenue> {
    String? selectedCategory;
   List<String> CategoryList = [
     'Birthday',
@@ -103,7 +103,7 @@ class _SignupVendorState extends State<SignupVendor> {
     return null;
   }
 
-  Future<void> vendorsignUp() async {
+  Future<void> venuesignUp() async {
   //   // Create a JSON object with the user data
        print('called');
   //   var vendorData = {
@@ -125,7 +125,7 @@ class _SignupVendorState extends State<SignupVendor> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.0.102:443/vendor/register'),
+        Uri.parse('https://192.168.0.103:443/venue/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);
@@ -496,7 +496,7 @@ class _SignupVendorState extends State<SignupVendor> {
                               //     context, ExploreScreen());
                             }
                             // NavigationUtils.navigateToPage(context, BranchDetails());
-                          vendorsignUp();
+                          venuesignUp();
                           },
                           text: 'SIGN UP',
                         ),

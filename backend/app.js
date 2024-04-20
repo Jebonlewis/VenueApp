@@ -5,7 +5,7 @@ const passport = require('passport');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
-//const https = require('https');
+//const http = require('http');
 const https = require('https');
 const config=require('./Auth/config/authConfig');
 const cors=require('cors');
@@ -23,15 +23,24 @@ const routerVenueLogin = require('./Auth/routes/venueSimpleLoginRoutes');
 const routerLocation = require('./location/routes/locationRoutes');
 const routerPackage = require('./Packages/routes/packageRoute');
 const routerVenueDetailes = require('./venueDetails/routes/venueDetailsRoutes');
+const {routerItem,routerItemDisplay} = require('./items/routes/itemRoutes');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-app.use(bodyParser.json());
+
+
+app.use(bodyParser.json({ limit: '50mb' }));
+
+// Parse incoming requests with URL-encoded payloads
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+
 app.use(cookieParser());
 app.use(session({ secret: 'dogs', resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(express.json());
 
 passport.serializeUser(function(user, done) {
     done(null, user);
@@ -61,6 +70,8 @@ app.use('/location',routerLocation);
 app.use('/packages',routerPackage);
 app.use('/venue/details',routerVenueDetailes);
 app.use('/branch',routerBranch);
+app.use('/item',routerItem);
+app.use('/vendor/images',routerItemDisplay);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

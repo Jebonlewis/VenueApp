@@ -1,7 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/add_items.dart';
+import 'package:venue/screens/vendor/add_items.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:http/io_client.dart';
+import 'package:http/http.dart' as http;
 
 class AdditemDetails extends StatefulWidget {
   const AdditemDetails({Key? key}) : super(key: key);
@@ -11,6 +18,106 @@ class AdditemDetails extends StatefulWidget {
 }
 
 class _AdditemDetailsState extends State<AdditemDetails> {
+  File? _image;
+  final picker = ImagePicker();
+  final TextEditingController _itemNameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+
+  Future getImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<void> sendItemDetailsToBackend() async {
+
+
+    try {
+      String itemName=_itemNameController.text;
+      String aboutItem=_descriptionController.text;
+      String price=_priceController.text;
+
+      if (itemName.isEmpty ||
+        aboutItem.isEmpty ||
+        price.isEmpty ) {
+      // Handle empty fields error
+      print('Please fill all fields');
+      return;
+    }
+    final ioClient = IOClient(HttpClient()
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true);
+
+    // Create a multipart request
+    var multipartRequest = http.MultipartRequest(
+        'POST', Uri.parse('https://192.168.0.102:443/item'));
+
+      multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
+      multipartRequest.fields['itemDetails'] = jsonEncode({
+      'itemName': itemName,
+      'aboutItem': aboutItem,
+      'price': price,
+      });
+
+       if (_image != null) {
+      var imageFile = await http.MultipartFile.fromPath(
+        'image',
+        _image!.path,
+        contentType: MediaType('image', 'jpeg'),
+      );
+      multipartRequest.files.add(imageFile);
+    } else {
+      print('No image selected.');
+    }
+
+    // Send the multipart request using the custom IOClient
+    var streamedResponse =
+        await ioClient.send(multipartRequest).timeout(Duration(seconds: 60));
+
+    // Process the response
+    var response = await http.Response.fromStream(streamedResponse);
+
+
+     if (response.statusCode == 201) {
+      // Handle successful response
+      print('items details uploaded successfully');
+
+      // Navigate to the Add Item page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddItems()), // Adjust with your AddItems page
+      );
+
+      // Display success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('items details uploaded successfully')),
+      );
+    } else {
+      // Handle unsuccessful response
+      print('Failed to upload branch details: ${response.reasonPhrase}');
+
+      // Display error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload branch details: ${response.reasonPhrase}')),
+      );
+    }
+  } catch (e) {
+    // Handle errors
+    print('Error uploading branch details: $e');
+
+    // Display error message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error uploading branch details: $e')),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -50,19 +157,26 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Container(
+                         Container(
                           height: 150,
                           width: 150,
                           decoration: BoxDecoration(
                             color: Colors.grey.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/images/branch_details.png',
-                              color: Colors.grey.withOpacity(0.4),
-                            ),
-                          ),
+                          child: _image != null
+                              ? ClipOval(
+                                  child: Image.file(
+                                    _image!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Center(
+                                  child: Icon(
+                                    Icons.add_a_photo,
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                         ),
                         SizedBox(width: 10),
                         Column(
@@ -73,8 +187,11 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                               'Upload image',
                               style: TextStyle(fontSize: 17),
                             ),
+                           
                             SizedBox(height: 10),
-                            Text(
+                             GestureDetector(
+                              onTap:getImage,
+                          child:  Text(
                               'Upload Now',
                               style: TextStyle(
                                 color: Colors.blue,
@@ -82,6 +199,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                                 decoration: TextDecoration.underline,
                               ),
                             ),
+                             ),
                           ],
                         ),
                       ],
@@ -107,7 +225,8 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                       ),
                     ),
                     child: TextField(
-                      // controller: _nameController,
+                      
+                      controller: _itemNameController,
                       decoration: InputDecoration(
                         hintText: "Enter Item Name",
                         hintStyle: TextStyle(color: Colors.grey),
@@ -144,6 +263,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                       ),
                     ),
                     child: TextFormField(
+                       controller: _descriptionController,
                       maxLines: null, // Allow multiple lines of text
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(
@@ -191,6 +311,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                         SizedBox(width: 10),
                         Expanded(
                           child: TextField(
+                           controller: _priceController,
                             decoration: InputDecoration(
                               hintText: "0.00",
                               hintStyle: TextStyle(color: Colors.grey),
@@ -212,11 +333,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
                 child: Column(
                   children: [
                     CustomButton(
-                      onPressed: () {
-                        // If no validation error, proceed with signing in
-                        // NavigationUtils.navigateToPage(
-                        //     context, AddItems());
-                      },
+                      onPressed: sendItemDetailsToBackend,
                       text: 'ADD ITEMS',
                     ),
                   ],

@@ -12,9 +12,9 @@ const config = {
       emailService: 'gmail',
       emailUser: 'hackathonannova@gmail.com',
       emailPass: 'wmrs korv trik gljn',
-      userEmailVerificationUrl: 'https://192.168.0.103:443/register/verify?token=',
-      vendorEmailVerificationUrl: 'https://192.168.0.102:443/vendor/register/verify?token=',
-      venueEmailVerificationUrl: 'https://localhost:443/venue/register/verify?token='
+      userEmailVerificationUrl: 'https://192.168.84.84:443/register/verify?token=',
+      vendorEmailVerificationUrl: 'https://192.168.84.84:443/vendor/register/verify?token=',
+      venueEmailVerificationUrl: 'https://192.168.84.84:443/venue/register/verify?token='
     },
     google:{
       googleClientId: '437139881682-kqisnb3c0k7to308uacbh7bklvnou9tq.apps.googleusercontent.com',

@@ -7,9 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/screens/vendor/branch_details.dart';
 import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/overlay_filter.dart';
-import 'package:venue/screens/vendor_register.dart';
+import 'package:venue/screens/vendor/vendor_register.dart';
 import 'package:venue/screens/reset_password.dart';
 import 'package:venue/screens/welcome_screen.dart';
 import 'package:http/http.dart' as http;
@@ -56,7 +57,7 @@ class _LoginScreenState extends State<VendorLoginScreen> {
 Future<void> vendorLogin() async {
     // Extract email
     // and password from text controllers
-    print("called");
+    print("Vendor login screen");
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
@@ -78,7 +79,7 @@ Future<void> vendorLogin() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.0.102:443/vendor/login'),
+       Uri.parse('https://192.168.84.84:443/vendor/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
@@ -100,7 +101,7 @@ Future<void> vendorLogin() async {
       print('Login successful, Token: $token');
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OverlayFilter()),
+          MaterialPageRoute(builder: (context) => BranchDetails()),
         );
       } else {
         // Login failed, handle the error

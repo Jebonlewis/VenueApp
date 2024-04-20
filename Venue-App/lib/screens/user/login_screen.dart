@@ -1,47 +1,39 @@
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
 import 'package:venue/screens/explore_screen.dart';
-import 'package:venue/screens/login_screen.dart';
-import 'package:venue/screens/search_screen.dart';
-import 'dart:convert'; // Import this for JSON encoding
-import 'package:http/http.dart' as http; // Import the http package
+import 'package:venue/screens/logout.dart';
+import 'package:venue/screens/user/register_screen.dart';
+import 'package:venue/screens/reset_password.dart';
+import 'package:venue/screens/welcome_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
 import 'dart:io'; 
-class SignUp extends StatefulWidget {
-  const SignUp({super.key});
+import 'package:venue/components/token_manager.dart';
+class LoginScreen extends StatefulWidget { 
+  //const LoginScreen({super.key});
+   final String? responseBody; //  optional
 
+  const LoginScreen({Key? key, this.responseBody}) : super(key: key);
+ 
   @override
-  State<SignUp> createState() => _SignUpState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _SignUpState extends State<SignUp> {
-  final TextEditingController _nameController = TextEditingController();
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TokenManager _tokenManager = TokenManager();
   bool _obscureText = true;
+  bool _rememberMe = false;
   String? _emailValidationError;
-  String? _passwordValidationError;
-  String? _confirmPasswordValidationError;
-  String? _nameValidationError;
-
-  String? _validateName(String value) {
-    // You can adjust the regular expression as per your name validation requirements
-    final RegExp nameRegex = RegExp(r'^[a-zA-Z\s]+$');
-    if (!nameRegex.hasMatch(value)) {
-      setState(() {
-        _nameValidationError = 'Enter Your Full Name';
-      });
-    } else {
-      setState(() {
-        _nameValidationError = null;
-      });
-    }
-    return null;
-  }
-
   String? _validateEmail(String value) {
     final RegExp emailRegex =
         RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
@@ -61,98 +53,65 @@ class _SignUpState extends State<SignUp> {
     }
     return null; // No error
   }
+Future<void> _login() async {
+    // Extract email
+    // and password from text controllers
+    print("called");
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
-  String? _validatePassword(String value) {
-    if (value.length < 10) {
-      setState(() {
-        _passwordValidationError =
-            'Password Should Atleast Contain 10 Characters';
-      });
-    } else {
-      setState(() {
-        _passwordValidationError = null;
-      });
-    }
-    return null;
-  }
+    // Create JSON data to send in the request body
+    Map<String, String> userData = {
+      'email': email,
+      'password': password,
+    };
 
-  String? _validateConfirmPassword(String value) {
-    if (value != _passwordController.text) {
-      setState(() {
-        _confirmPasswordValidationError = 'Passwords do not match';
-      });
-    } else {
-      setState(() {
-        _confirmPasswordValidationError = null;
-      });
-    }
-    return null;
-  }
+    // Encode the data as JSON
+    String jsonData = jsonEncode(userData);
+    print('jsonData ${jsonData}');
 
-
-Future<void> signUp() async {
-  // Create a JSON object with the user data
-  print('called');
-  var userData = {
-    'fullname': _nameController.text.trim(),
-    'email': _emailController.text.trim(),
-    'password': _passwordController.text.trim(),
-    'confirmPassword': _confirmPasswordController.text.trim(),
-    // Add other necessary data if needed
-  };
-
-  // Encode the data as JSON
-  var jsonData = jsonEncode(userData);
-  print('userdata ${userData}');
     try {
-      // Send the user data to the backend for registration
-        var httpClient = HttpClient();
+      // Make the HTTP POST request to your backend
+       var httpClient = HttpClient();
     httpClient.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
 
     var request = await httpClient.postUrl(
-      //Uri.parse('https://34.118.241.155:8000/register'),
-       Uri.parse('https://192.168.0.102:443/register'),
+      //Uri.parse('https://34.125.168.131:8000/login'),
+       Uri.parse('https://192.168.0.102:443/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
     var response = await request.close().timeout(Duration(seconds: 60));
-
+      // Check the response status code
+      var responseData = await response.transform(utf8.decoder).join();
       if (response.statusCode == 200) {
-        // Check the response data for verification email sent message
-        var responseBody = await response.transform(utf8.decoder).join();
-        if (responseBody== 'Verification email sent') {
-          // Show success message
-          setState(() {
-            _emailValidationError = null;
-            _passwordValidationError = null;
-            _confirmPasswordValidationError = null;
-            _nameValidationError = null;
-            // Optionally, clear the form fields here
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Verification email sent. Please check your inbox.')),
-          );
-        } else {
-          // Handle other messages or errors
-          print(responseBody);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseBody)),
-          );
-        }
-      } else {
-        // Handle other status codes or errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred during registration')),
+        // Login successful, handle the response data
+        
+      Map<String, dynamic> responseMap = jsonDecode(responseData);
+      String token = responseMap['token']; // Extract token from response
+      // Perform actions based on successful login
+      // print(responseMap['userType']);
+      // String fullname = responseMap['fullname']; // Extract fullname from response
+       // Print fullname
+     // print('Fullname: $fullname');
+
+      await _tokenManager.saveToken(token);
+      print('Login successful, Token: $token');
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ExploreScreen()),
         );
+      } else {
+        // Login failed, handle the error
+        print('Login failed, Status Code: ${responseData}');
       }
     } catch (error) {
       // Handle network errors or exceptions
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during registration')),
-      );
+      print('Error occurred during login: $error');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -168,10 +127,10 @@ Future<void> signUp() async {
                   Container(
                     alignment: Alignment.topLeft,
                     padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.16,
+                        top: MediaQuery.of(context).size.height * 0.27,
                         left: paddingleft),
-                    child: const Text(
-                      "Sign Up",
+                    child: Text(
+                      "Sign in",
                       style: TextStyle(
                           fontSize: 32,
                           color: Colors.black,
@@ -179,58 +138,6 @@ Future<void> signUp() async {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: Container(
-                      padding: EdgeInsets.only(left: paddingleft),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.grey.withOpacity(0.4),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _nameController,
-                              decoration: InputDecoration(
-                                hintText: "Full name",
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (value) {
-                                // Call the validation method when the text changes
-                                _validateName(value);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _nameValidationError != null
-                        ? Text(
-                            _nameValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Container(
                     alignment: Alignment.topLeft,
                     padding: EdgeInsets.only(left: paddingleft),
@@ -283,6 +190,7 @@ Future<void> signUp() async {
                           )
                         : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
                   ),
+
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Container(
                     alignment: Alignment.topLeft,
@@ -309,10 +217,6 @@ Future<void> signUp() async {
                                 hintText: "Your Password",
                                 border: InputBorder.none,
                               ),
-                              onChanged: (value) {
-                                // Call the validation method when the text changes
-                                _validatePassword(value);
-                              },
                             ),
                           ),
                           IconButton(
@@ -331,89 +235,42 @@ Future<void> signUp() async {
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _passwordValidationError != null
-                        ? Text(
-                            _passwordValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: Container(
-                      padding: EdgeInsets.only(left: paddingleft),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.withOpacity(0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.lock,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _confirmPasswordController,
-                              decoration: InputDecoration(
-                                hintText: "Confirm Password",
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (value) {
-                                // Call the validation method when the text changes
-                                _validateConfirmPassword(value);
-                              },
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              _obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.grey,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscureText = !_obscureText;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _confirmPasswordValidationError != null
-                        ? Text(
-                            _confirmPasswordValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   Padding(
                     padding: EdgeInsets.only(
                       left: MediaQuery.of(context).size.width * 0.01,
                       right: MediaQuery.of(context).size.width * 0.04,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Switch(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value;
+                            });
+                          },
+                        ),
+                        Text(
+                          'Remember Me',
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            NavigationUtils.navigateToPage(
+                              context,
+                              ResetPassword(),
+                            );
+                          },
+                          child: Text(
+                            'Forgot Password?',
+                            style: TextStyle(color: Colors.black, fontSize: 15),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
@@ -422,25 +279,16 @@ Future<void> signUp() async {
                       children: [
                         CustomButton(
                           onPressed: () {
-                            _validateName(_nameController.text);
                             _validateEmail(_emailController.text);
-                            _validatePassword(_passwordController.text);
-                            _validateConfirmPassword(
-                                _confirmPasswordController.text);
                             // Check if there's any validation error
-                            if (_nameValidationError == null &&
-                                _emailValidationError == null &&
-                                _passwordValidationError == null &&
-                                _confirmPasswordValidationError == null) {
+                            if (_emailValidationError == null) {
                               // If no validation error, proceed with signing in
-                              signUp();
-                              
+                               _login();
                               // NavigationUtils.navigateToPage(
-                              //     context, ExploreScreen());
+                              //     context, WelcomeScreen());
                             }
-                            //  NavigationUtils.navigateToPage(context, ExploreScreen());
                           },
-                          text: 'SIGN UP',
+                          text: 'SIGN IN',
                         ),
                         SizedBox(
                             height: MediaQuery.of(context).size.height * 0.01),
@@ -458,7 +306,7 @@ Future<void> signUp() async {
                             height: 24,
                           ),
                           label: const Text(
-                            'Sign up with Google',
+                            'Login with Google',
                             style: TextStyle(
                               fontSize: 16.0,
                               color: Colors.black,
@@ -519,13 +367,13 @@ Future<void> signUp() async {
                             ),
                             children: <TextSpan>[
                               TextSpan(
-                                text: '  Sign in',
+                                text: '  Sign up',
                                 style: TextStyle(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     NavigationUtils.navigateToPage(
                                       context,
-                                      LoginScreen(),
+                                      SignUp(),
                                     );
                                   },
                               ),
@@ -536,19 +384,6 @@ Future<void> signUp() async {
                     ),
                   ),
                 ],
-              ),
-            ),
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.10,
-              left: 0,
-              child: IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  NavigationUtils.navigateToPage(
-                    context,
-                    LoginScreen(),
-                  );
-                },
               ),
             ),
             Positioned(
@@ -564,4 +399,3 @@ Future<void> signUp() async {
     );
   }
 }
- 

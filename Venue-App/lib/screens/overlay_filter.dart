@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/login_screen.dart';
+import 'package:venue/screens/user/login_screen.dart';
 import 'package:venue/screens/welcome_screen.dart';
 
 class OverlayFilter extends StatefulWidget {

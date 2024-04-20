@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/additem_details.dart';
-import 'package:venue/screens/branch_details.dart';
+import 'package:venue/screens/vendor/additem_details.dart';
+import 'package:venue/screens/vendor/branch_details.dart';
 
 class AddItems extends StatefulWidget {
   const AddItems({super.key});

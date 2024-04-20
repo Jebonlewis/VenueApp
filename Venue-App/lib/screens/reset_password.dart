@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
-import 'package:venue/screens/login_screen.dart';
+import 'package:venue/screens/user/login_screen.dart';
 
 class ResetPassword extends StatefulWidget {
   const ResetPassword({super.key});

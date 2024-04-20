@@ -70,15 +70,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:venue/certificate_manager.dart';
+import 'package:venue/screens/vendor/additem_details.dart';
+import 'package:venue/screens/vendor/branch_details.dart';
 import 'package:venue/screens/choose_screen.dart';
+import 'package:venue/screens/display_images.dart';
 import 'package:venue/screens/explore_screen.dart';
 import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/search_screen.dart';
 import 'package:venue/screens/splash_screen.dart';
-import 'package:venue/screens/vendor_login.dart';
+import 'package:venue/screens/vendor/vendor_login.dart';
 import 'package:venue/screens/welcome_screen.dart';
-import 'package:venue/screens/vendor_register.dart';
+import 'package:venue/screens/vendor/vendor_register.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized before async operations
 
@@ -102,7 +105,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => SplashScreen(),
         '/home': (context) => ExploreScreen(), // User home screen
-        '/vendorHome': (context) => LogoutScreen(), // Vendor home screen
+        '/vendorHome': (context) => BranchDetails(), // Vendor home screen
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {
