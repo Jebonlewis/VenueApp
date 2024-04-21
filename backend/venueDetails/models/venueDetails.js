@@ -6,11 +6,16 @@ const Vendor=require('../../Auth/models/Vendors')
 
 // Define the VenueDetails schema
 const VenueDetailsSchema = new Schema({
-  venue_id: { type: Schema.Types.ObjectId, ref: 'Venue', required: true },
-  VenueName: { type: String, required: true },
-  location_id: { type: Schema.Types.ObjectId, ref: 'Location', required: true },
+  venue_id: { type: Schema.Types.ObjectId, ref: 'Venue'},
+  VenueName: { type: String },
+  location_id: { type: Schema.Types.ObjectId, ref: 'Location', default:null },
+  address: { type: String,default:null, require: true },
+  country:{ type: String, default:null, require: true},
+  state:{ type: String, default:null, require: true},
+  city:{ type: String, default:null, require: true},
+
   hits: { type: Number, default: null, require: true },
-  vendor_id: [{ type: Schema.Types.ObjectId, ref: 'Vendor' }],
+  vendor_id: [{ type: Schema.Types.ObjectId, ref: 'Vendor', default:null }],
   
   rating_id: { type: String, default: null }, // Assuming there's a separate rating document/collection
   overall_rating: { type: Number, min: 1, max: 5, default: null },
@@ -25,7 +30,7 @@ const VenueDetailsSchema = new Schema({
     capacity: { type: Number, required: true },
     price: { type: Number, required: true },
     availability: { type: Boolean, default: true },
-    address: { type: String, require: true },
+    
  
   service_category: {
     type: String,

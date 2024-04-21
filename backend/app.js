@@ -24,6 +24,7 @@ const routerLocation = require('./location/routes/locationRoutes');
 const routerPackage = require('./Packages/routes/packageRoute');
 const routerVenueDetailes = require('./venueDetails/routes/venueDetailsRoutes');
 const {routerItem,routerItemDisplay} = require('./items/routes/itemRoutes');
+const {routerNoofHalls,routerHallDetails} = require('./venueDetails/routes/venueDetailsRoutes');
 const app = express();
 
 app.use(cors());
@@ -68,10 +69,11 @@ app.use('/venue/register',routerVenueRegister);
 app.use('/venue/login',routerVenueLogin);
 app.use('/location',routerLocation);
 app.use('/packages',routerPackage);
-app.use('/venue/details',routerVenueDetailes);
 app.use('/branch',routerBranch);
 app.use('/item',routerItem);
 app.use('/vendor/images',routerItemDisplay);
+app.use('/venue/home/screen',routerNoofHalls);
+app.use('/venue/hallDetails',routerHallDetails);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -80,9 +80,11 @@ import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/search_screen.dart';
 import 'package:venue/screens/splash_screen.dart';
 import 'package:venue/screens/vendor/vendor_login.dart';
+import 'package:venue/screens/venue/form_screen.dart';
 import 'package:venue/screens/venue/home_screen.dart';
 import 'package:venue/screens/welcome_screen.dart';
 import 'package:venue/screens/vendor/vendor_register.dart';
+import 'package:venue/screens/venue/form_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized before async operations
 
@@ -107,7 +109,7 @@ class MyApp extends StatelessWidget {
         '/splash': (context) => SplashScreen(),
         '/userHome': (context) => ExploreScreen(), // User home screen
         '/vendorHome': (context) => BranchDetails(),
-        '/venueHome':(context) => HomeVenue(), // Vendor home screen
+        '/venueHome':(context) =>  FormPage(numberOfHalls: 3), // Vendor home screen
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {

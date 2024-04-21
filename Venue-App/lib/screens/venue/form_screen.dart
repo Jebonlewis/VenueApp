@@ -1,8 +1,12 @@
 import 'dart:io';
-
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:venue/components/custom_button.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:http/io_client.dart';
+import 'package:http/http.dart' as http;
 
 class FormPage extends StatefulWidget {
   final int numberOfHalls;
@@ -20,33 +24,33 @@ class _FormPageState extends State<FormPage> {
   final TextEditingController _hotelnameController = TextEditingController();
   final TextEditingController _abouthotelController = TextEditingController();
   final TextEditingController _restrictionsController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  //final TextEditingController _addressController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
   final picker = ImagePicker();
-  String? selectedCity;
+  //String? selectedCity;
   String? selectedCategory;
   String? selectedAvailablity;
   String? selectedVenuetype;
-  List<String> cityList = [
-    'New York',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
-    // Add more cities as needed
-  ];
+  // List<String> cityList = [
+  //   'New York',
+  //   'Los Angeles',
+  //   'Chicago',
+  //   'Houston',
+  //   'Phoenix',
+  //   'Philadelphia',
+  //   'San Antonio',
+  //   'San Diego',
+  //   'Dallas',
+  //   'San Jose',
+  //   // Add more cities as needed
+  // ];
   List<String> CategoryList = [
     'Birthday',
+    'Music',
     'Wedding',
-    'Birthday',
-    'Party',
+    'Corporate',
   ];
 
   List<String> AvailablityList = [
@@ -54,8 +58,8 @@ class _FormPageState extends State<FormPage> {
     'No',
   ];
   List<String> VenuetypeList = [
-    'Veg',
-    'Non-Veg',
+    'veg',
+    'nonveg',
   ];
 
   Future getImage() async {
@@ -69,6 +73,93 @@ class _FormPageState extends State<FormPage> {
       }
     });
   }
+  Future<void> sendHallDetailsToBackend() async {
+
+
+    try {
+      print('hall details called');
+      bool isAvailable = selectedAvailablity == 'Yes';
+      String hotelName=_hotelnameController.text;
+      String aboutName=_abouthotelController.text;
+      String restriction=_restrictionsController.text;
+      String capacity=_capacityController.text;
+      String price=_priceController.text;
+      
+
+      if (hotelName.isEmpty ||
+        aboutName.isEmpty ||restriction.isEmpty || capacity.isEmpty ||
+         price.isEmpty ) {
+      // Handle empty fields error
+      print('Please fill all fields');
+      return;
+    }
+    final ioClient = IOClient(HttpClient()
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true);
+
+    // Create a multipart request
+    var multipartRequest = http.MultipartRequest(
+        'POST', Uri.parse('https://192.168.0.102:443/venue/hallDetails'));
+
+      multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
+      multipartRequest.fields['hallDetails'] = jsonEncode({
+      'hotelName': hotelName,
+      'aboutName': aboutName,
+      'restriction':restriction,
+      'capacity':capacity,
+      'price': price,
+      'availability':isAvailable,
+      'service_category':selectedCategory,
+      'venue_type':selectedVenuetype,
+      });
+
+       if (_image != null) {
+      var imageFile = await http.MultipartFile.fromPath(
+        'image',
+        _image!.path,
+        contentType: MediaType('image', 'jpeg'),
+      );
+      multipartRequest.files.add(imageFile);
+    } else {
+      print('No image selected.');
+    }
+
+    // Send the multipart request using the custom IOClient
+    var streamedResponse =
+        await ioClient.send(multipartRequest).timeout(Duration(seconds: 60));
+
+    // Process the response
+    var response = await http.Response.fromStream(streamedResponse);
+
+
+     if (response.statusCode == 201) {
+      // Handle successful response
+      print('halls details uploaded successfully');
+
+
+      // Display success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('halls details uploaded successfully')),
+      );
+    } else {
+      // Handle unsuccessful response
+      print('Failed to upload branch details: ${response.reasonPhrase}');
+
+      // Display error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload halls details: ${response.reasonPhrase}')),
+      );
+    }
+  } catch (e) {
+    // Handle errors
+    print('Error uploading halls details: $e');
+
+    // Display error message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error uploading branch details: $e')),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -270,47 +361,47 @@ class _FormPageState extends State<FormPage> {
                 ],
               ),
             ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Address',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: TextField(
-                        controller: _addressController,
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Address Here",
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // SizedBox(height: 15),
+            // Container(
+            //   alignment: Alignment.topLeft,
+            //   padding: EdgeInsets.only(left: paddingleft),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text(
+            //         'Address',
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 18,
+            //         ),
+            //       ),
+            //       SizedBox(height: 6),
+            //       Container(
+            //         padding: EdgeInsets.only(left: paddingleft),
+            //         width: MediaQuery.of(context).size.width * 0.9,
+            //         height: 60,
+            //         decoration: BoxDecoration(
+            //           borderRadius: BorderRadius.circular(10),
+            //           border: Border.all(
+            //             color: Colors.grey.withOpacity(0.4),
+            //           ),
+            //         ),
+            //         child: Center(
+            //           child: TextField(
+            //             controller: _addressController,
+            //             maxLines: null,
+            //             keyboardType: TextInputType.multiline,
+            //             decoration: InputDecoration(
+            //               border: InputBorder.none,
+            //               hintText: "Address Here",
+            //               hintStyle: TextStyle(color: Colors.grey),
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
@@ -503,156 +594,156 @@ class _FormPageState extends State<FormPage> {
                 ],
               ),
             ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'City',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Select City",
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                        value: selectedCity,
-                        onChanged: (String? value) {
-                          setState(() {
-                            selectedCity = value;
-                          });
-                        },
-                        items: cityList.map((String city) {
-                          return DropdownMenuItem<String>(
-                            value: city,
-                            child: Text(city),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'State',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Select State",
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                        value: selectedCity,
-                        onChanged: (String? value) {
-                          setState(() {
-                            selectedCity = value;
-                          });
-                        },
-                        items: cityList.map((String city) {
-                          return DropdownMenuItem<String>(
-                            value: city,
-                            child: Text(city),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Country',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Select Country",
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                        value: selectedCity,
-                        onChanged: (String? value) {
-                          setState(() {
-                            selectedCity = value;
-                          });
-                        },
-                        items: cityList.map((String city) {
-                          return DropdownMenuItem<String>(
-                            value: city,
-                            child: Text(city),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // SizedBox(height: 15),
+            // Container(
+            //   alignment: Alignment.topLeft,
+            //   padding: EdgeInsets.only(left: paddingleft),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text(
+            //         'City',
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 18,
+            //         ),
+            //       ),
+            //       SizedBox(height: 6),
+            //       Container(
+            //         padding: EdgeInsets.only(left: paddingleft),
+            //         width: MediaQuery.of(context).size.width * 0.9,
+            //         height: 60,
+            //         decoration: BoxDecoration(
+            //           borderRadius: BorderRadius.circular(10),
+            //           border: Border.all(
+            //             color: Colors.grey.withOpacity(0.4),
+            //           ),
+            //         ),
+            //         child: Center(
+            //           child: DropdownButtonFormField<String>(
+            //             decoration: InputDecoration(
+            //               border: InputBorder.none,
+            //               hintText: "Select City",
+            //               hintStyle: TextStyle(color: Colors.grey),
+            //             ),
+            //             value: selectedCity,
+            //             onChanged: (String? value) {
+            //               setState(() {
+            //                 selectedCity = value;
+            //               });
+            //             },
+            //             items: cityList.map((String city) {
+            //               return DropdownMenuItem<String>(
+            //                 value: city,
+            //                 child: Text(city),
+            //               );
+            //             }).toList(),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // SizedBox(height: 15),
+            // Container(
+            //   alignment: Alignment.topLeft,
+            //   padding: EdgeInsets.only(left: paddingleft),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text(
+            //         'State',
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 18,
+            //         ),
+            //       ),
+            //       SizedBox(height: 6),
+            //       Container(
+            //         padding: EdgeInsets.only(left: paddingleft),
+            //         width: MediaQuery.of(context).size.width * 0.9,
+            //         height: 60,
+            //         decoration: BoxDecoration(
+            //           borderRadius: BorderRadius.circular(10),
+            //           border: Border.all(
+            //             color: Colors.grey.withOpacity(0.4),
+            //           ),
+            //         ),
+            //         child: Center(
+            //           child: DropdownButtonFormField<String>(
+            //             decoration: InputDecoration(
+            //               border: InputBorder.none,
+            //               hintText: "Select State",
+            //               hintStyle: TextStyle(color: Colors.grey),
+            //             ),
+            //             value: selectedCity,
+            //             onChanged: (String? value) {
+            //               setState(() {
+            //                 selectedCity = value;
+            //               });
+            //             },
+            //             items: cityList.map((String city) {
+            //               return DropdownMenuItem<String>(
+            //                 value: city,
+            //                 child: Text(city),
+            //               );
+            //             }).toList(),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // SizedBox(height: 15),
+            // Container(
+            //   alignment: Alignment.topLeft,
+            //   padding: EdgeInsets.only(left: paddingleft),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text(
+            //         'Country',
+            //         style: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 18,
+            //         ),
+            //       ),
+            //       SizedBox(height: 6),
+            //       Container(
+            //         padding: EdgeInsets.only(left: paddingleft),
+            //         width: MediaQuery.of(context).size.width * 0.9,
+            //         height: 60,
+            //         decoration: BoxDecoration(
+            //           borderRadius: BorderRadius.circular(10),
+            //           border: Border.all(
+            //             color: Colors.grey.withOpacity(0.4),
+            //           ),
+            //         ),
+            //         child: Center(
+            //           child: DropdownButtonFormField<String>(
+            //             decoration: InputDecoration(
+            //               border: InputBorder.none,
+            //               hintText: "Select Country",
+            //               hintStyle: TextStyle(color: Colors.grey),
+            //             ),
+            //             value: selectedCity,
+            //             onChanged: (String? value) {
+            //               setState(() {
+            //                 selectedCity = value;
+            //               });
+            //             },
+            //             items: cityList.map((String city) {
+            //               return DropdownMenuItem<String>(
+            //                 value: city,
+            //                 child: Text(city),
+            //               );
+            //             }).toList(),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
@@ -712,6 +803,7 @@ class _FormPageState extends State<FormPage> {
               child: Center(
                 child: CustomButton(
                   onPressed: () {
+                    sendHallDetailsToBackend();
                     if (widget.hallNumber < widget.numberOfHalls) {
                       Navigator.push(
                         context,

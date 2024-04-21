@@ -95,6 +95,7 @@ class _SignupVenueState extends State<SignupVenue> {
     }
     return null;
   }
+  
 
   Future<void> venuesignUp() async {
   //   // Create a JSON object with the user data
