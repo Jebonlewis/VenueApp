@@ -109,7 +109,8 @@ class MyApp extends StatelessWidget {
         '/splash': (context) => SplashScreen(),
         '/userHome': (context) => ExploreScreen(), // User home screen
         '/vendorHome': (context) => BranchDetails(),
-        '/venueHome':(context) =>  FormPage(numberOfHalls: 3), // Vendor home screen
+       // '/venueHome':(context) =>  FormPage(numberOfHalls: 3), 
+       '/venueHome':(context) =>  HomeVenue(),
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {

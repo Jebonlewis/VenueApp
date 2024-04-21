@@ -19,19 +19,21 @@ routerNoofHalls.post('/', async (req, res) => {
     const venue = await Venue.findOne({ email: email }, '_id');
     const venue_id = venue._id;
     const existingVenue = await VenueDetails.findOne({venue_id });
-    if (existingVenue){
-      console.log('venue already exist');
-      res.status(500).json({ message: 'venue already exist' });
-    }
-    else{
+    // if (existingVenue){
+    //   console.log('venue already exist');
+    //   res.status(500).json({ message: 'venue already exist' });
+    // }
+    // else{
 
     // Find the venue based on email
     
-
+    const location = {
+      type: "Point",
+      coordinates: [longitude, latitude],
+    }
     // Create a new VenueLocation document
     const newVenueLocation = new VenueLocation({
-      latitude,
-      longitude
+      location
     });
 
     // Save the VenueLocation document to the database
@@ -62,7 +64,8 @@ routerNoofHalls.post('/', async (req, res) => {
 
     res.status(201).json({ message: 'Venue details stored successfully' });
   } 
-}catch (error) {
+// }
+catch (error) {
     console.error(error);
     // If there's an error, delete the associated VenueLocation
     if (savedVenueLocation) {

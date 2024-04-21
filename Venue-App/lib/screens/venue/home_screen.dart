@@ -13,6 +13,13 @@ class HomeVenue extends StatefulWidget {
 }
 
 class _HomeVenueState extends State<HomeVenue> {
+  TextEditingController _searchController = TextEditingController();
+  String _selectedPlace = '';
+  String _selectedLocation = '';
+  List<String> _suggestions = [];
+  String _latitude = '';
+  String _longitude = '';
+    bool _isSearching = false;
   final TextEditingController _venuenameController = TextEditingController();
   final TextEditingController _venueaddressController = TextEditingController();
   int numberOfHalls = 0;
@@ -56,6 +63,110 @@ class _HomeVenueState extends State<HomeVenue> {
     'San Jose',
   ];
 
+ @override
+  void dispose() {
+    _searchController.dispose();
+    _venuenameController.dispose();
+    _venueaddressController.dispose();
+    super.dispose();
+  }
+
+void _saveLocation(String location, String latitude, String longitude) {
+    print('Location saved: $location');
+    print('Latitude saved: $latitude');
+    print('Longitude saved: $longitude');
+  }
+  
+Future<void> _getSuggestions(String query) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&types=geocode&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['predictions'].isNotEmpty) {
+        setState(() {
+          _suggestions.clear();
+          for (var prediction in data['predictions']) {
+            _suggestions.add(prediction['description']);
+          }
+        });
+      }
+    } catch (e) {
+      print('Error getting suggestions: $e');
+    }
+  }
+
+void _searchAndSaveLocation() {
+    if (!_isSearching) {
+      setState(() {
+        _isSearching = true;
+      });
+      _searchLocation(_searchController.text);
+      _saveLocation(_selectedPlace, _latitude, _longitude);
+    }
+  }
+
+
+  Future<void> _searchLocation(String query) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&types=geocode&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['predictions'].isNotEmpty) {
+        final placeId = data['predictions'][0]['place_id'];
+        _getPlaceDetails(placeId);
+      } else {
+        setState(() {
+          _selectedPlace = 'No results found';
+        });
+      }
+    } catch (e) {
+      print('Error searching location: $e');
+    }
+  }
+
+  Future<void> _getPlaceDetails(String placeId) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['result'] != null) {
+        final formattedAddress = data['result']['formatted_address'];
+        final latitude = data['result']['geometry']['location']['lat'];
+        final longitude = data['result']['geometry']['location']['lng'];
+
+        setState(() {
+          _selectedPlace = formattedAddress;
+          _selectedLocation = 'Latitude: $latitude, Longitude: $longitude';
+          _latitude = latitude.toString();
+          _longitude = longitude.toString();
+        });
+      } else {
+        setState(() {
+          _selectedPlace = 'No results found';
+          _selectedLocation = '';
+          _latitude = '';
+          _longitude = '';
+        });
+      }
+    } catch (e) {
+      print('Error getting place details: $e');
+    }
+  }
+
+
+
   Future<void> _sendVenueDetails() async {
     try {
       print("venue Details called");
@@ -65,8 +176,8 @@ class _HomeVenueState extends State<HomeVenue> {
           'address': _venueaddressController.text,
           'city': selectedCity ?? '',
           'state': selectedState ?? '',
-          'latitude':5.44,
-          'longitude':6.44,
+          'latitude':_latitude,
+          'longitude':_longitude,
           'country': selectedCountry ?? '',
           'numberOfHalls': numberOfHalls.toString(),
         };
@@ -186,6 +297,82 @@ class _HomeVenueState extends State<HomeVenue> {
                     ],
                   ),
                 ),
+                 SizedBox(height: 15),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Location',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Container(
+                        padding: EdgeInsets.only(left: paddingleft),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.4),
+                          ),
+                        ),
+                        child: Center(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: "Enter Location Here",
+                              hintStyle: TextStyle(color: Colors.grey),
+                              // suffixIcon: IconButton(
+                              //   icon: Icon(Icons.search),
+                              //   onPressed: () {
+                              //     _searchLocation(_searchController.text);
+                              //   },
+                              // ),
+                            ),
+                            onChanged: (value) {
+                              _getSuggestions(value);
+                            },
+                          ),
+                        ),
+                      ),
+                      _suggestions.isNotEmpty
+                          ? Padding(
+                              padding: EdgeInsets.only(
+                                left: paddingleft,
+                                top: 6,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: _suggestions
+                                    .map((suggestion) => GestureDetector(
+                                          onTap: () {
+                                            _searchController.text =
+                                                suggestion;
+                                            _searchLocation(suggestion);
+                                          },
+                                          child: Text(
+                                            suggestion,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.blue,
+                                              
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            )
+                          : Container(),
+                    ],
+                  ),
+                ),
+
                 SizedBox(height: 15),
                 Container(
                   alignment: Alignment.topLeft,
@@ -379,6 +566,7 @@ class _HomeVenueState extends State<HomeVenue> {
                 Center(
                   child: CustomButtonSmall(
                     onPressed: () {
+                      _saveLocation(_selectedPlace, _latitude, _longitude);
                       _sendVenueDetails();
                       if (numberOfHalls > 0) {
                         Navigator.push(

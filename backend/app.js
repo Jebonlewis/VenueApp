@@ -20,7 +20,7 @@ const {routerVendorRegister, routerBranch}=require('./Auth/routes/vendorRegister
 const routerVendorLogin=require('./Auth/routes/vendorSimpleLoginRoutes');
 const routerVenueRegister = require('./Auth/routes/venueRegisterRoutes');
 const routerVenueLogin = require('./Auth/routes/venueSimpleLoginRoutes');
-const routerLocation = require('./location/routes/locationRoutes');
+const routerLocation = require('./location/routes/locationSearchRoutes');
 const routerPackage = require('./Packages/routes/packageRoute');
 const routerVenueDetailes = require('./venueDetails/routes/venueDetailsRoutes');
 const {routerItem,routerItemDisplay} = require('./items/routes/itemRoutes');
@@ -74,6 +74,7 @@ app.use('/item',routerItem);
 app.use('/vendor/images',routerItemDisplay);
 app.use('/venue/home/screen',routerNoofHalls);
 app.use('/venue/hallDetails',routerHallDetails);
+app.use('/search/location/',routerLocation);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
