@@ -100,10 +100,10 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
 
     // Create a multipart request
     var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('https://192.168.0.102:443/branch'));
+        'POST', Uri.parse('http://192.168.0.102:443/branch'));
 
     // Add JSON data to multipart request
-    multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
+    multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
     multipartRequest.fields['branchDetails'] = jsonEncode({
       'branchName': branchName,
       'aboutBranch': aboutBranch,

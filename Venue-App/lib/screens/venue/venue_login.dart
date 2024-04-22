@@ -80,7 +80,7 @@ Future<void> venueLogin() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.0.102:443/venue/login'),
+       Uri.parse('http://192.168.43.160:443/venue/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);

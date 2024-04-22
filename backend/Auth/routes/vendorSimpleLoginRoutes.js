@@ -13,7 +13,7 @@ routerVendorLogin.post('/', async (req, res, next) => {
   try {
 
     console.log('req.body',req.body);
-//         // Validate request body
+         // Validate request body
         const { error } = vendorLoginValidation.validate(req.body);
         if (error) {
           console.log("Validation error:", error.details[0].message);

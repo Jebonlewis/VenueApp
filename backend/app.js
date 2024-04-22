@@ -5,8 +5,8 @@ const passport = require('passport');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
-//const http = require('http');
-const https = require('https');
+const http = require('http');
+//const https = require('https');
 const config=require('./Auth/config/authConfig');
 const cors=require('cors');
 const path = require('path');
@@ -82,23 +82,23 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something went wrong!');
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+// });
 
 app.get('/', async (req, res) => {
     res.send('<a href="/auth/google">Authenticate with Google</a>');
   });
 
 // Create HTTPS server
-const options = {
-    key: fs.readFileSync('./Auth/certificates/key.pem'),
-    cert: fs.readFileSync('./Auth/certificates/cert.pem'),
-    passphrase: 'venusecure'
-};
+// const options = {
+//     key: fs.readFileSync('./Auth/certificates/key.pem'),
+//     cert: fs.readFileSync('./Auth/certificates/cert.pem'),
+//     passphrase: 'venusecure'
+// };
 const port = config.port || 443;
-const server = https.createServer(options, app);
-//const server = http.createServer( app);
+//const server = https.createServer(options, app);
+const server = http.createServer( app);
 
 // Start the server
 server.listen(port, () => {

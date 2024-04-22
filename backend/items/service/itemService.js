@@ -56,21 +56,36 @@ async function getImagesByVendorId(vendorId) {
     const gfs = new GridFSBucket(mongoose.connection.db, {
       bucketName: 'vendorItemImage'
     });
+    console.log('gfs',gfs);
     const item = await Item.findOne({ vendorId: vendorId }, '_id');
+    console.log('item',item);
     const itemId=item._id
-    console.log(itemId)
+    console.log("itemId",itemId)
     if (!item) {
       throw new Error('Item not found with the provided vendor ID');
     }
     // Find all images with matching vendorId
-    const images = await gfs.find({ 'metadata.vendorId': new ObjectID(itemId) }).toArray();
-    console.log(images);
+    // console.log("working")
+     const images = await gfs.find({ 'metadata.itemId': itemId }).toArray();
+     console.log("not working");
+    // const distinctImages = await gfs.find({ 'metadata.itemId': itemId }).distinct('_id');
+    // console.log("distinctImages",distinctImages);
+    
+    // // Fetch image data for each distinct image
+    // const images = await Promise.all(distinctImages.map(async (imageId) => {
+    //   console.log("Fetching image data for imageId:", imageId);
+    //   const imageData = await gfs.findOne({ _id: imageId });
+    //   console.log("Image data:", imageData);
+    //   return imageData;
+    // }));
+    
+    //console.log("images", images);
     return images;
+    
   } catch (error) {
     throw error;
   }
 }
-
 module.exports = {
   createItem,
   getImagesByVendorId

@@ -89,7 +89,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized before async operations
 
   // Load certificates
-  await CertificateManager.loadCertificates();
+  //await CertificateManager.loadCertificates();
   runApp(const MyApp());
 }
 
@@ -108,9 +108,12 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => SplashScreen(),
         '/userHome': (context) => ExploreScreen(), // User home screen
-        '/vendorHome': (context) => BranchDetails(),
+        //'/vendorHome': (context) => BranchDetails(),
+        //'/vendorHome': (context) => LogoutScreen(),
+        '/vendorHome': (context) => DisplayImages(email: 'jebontarunlewis63@gmail.com'),
        // '/venueHome':(context) =>  FormPage(numberOfHalls: 3), 
-       '/venueHome':(context) =>  HomeVenue(),
+       //'/venueHome':(context) =>  HomeVenue(),
+       '/venueHome':(context) =>  LogoutScreen(),
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {

@@ -57,9 +57,9 @@ class _AdditemDetailsState extends State<AdditemDetails> {
 
     // Create a multipart request
     var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('https://192.168.0.102:443/item'));
+        'POST', Uri.parse('http://192.168.0.102:443/item'));
 
-      multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
+      multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
       multipartRequest.fields['itemDetails'] = jsonEncode({
       'itemName': itemName,
       'aboutItem': aboutItem,

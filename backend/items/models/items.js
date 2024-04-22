@@ -9,6 +9,9 @@ const ItemSchema = new Schema({
   aboutItem: { type: String, required: true },
   price: { type: Number, required: true },
   // Assuming you want to store images as URLs
+},
+{
+  timestamps:true,
 });
 
 // Create a model based on the schema

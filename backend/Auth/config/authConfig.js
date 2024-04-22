@@ -5,6 +5,7 @@ const config = {
       dbUrl: 'mongodb://localhost:27017/VenuApp',
 
     },
+    ip: '192.168.43.160',
     register:{
       jwtSecretMail: 'email_verify',
     },
@@ -12,9 +13,9 @@ const config = {
       emailService: 'gmail',
       emailUser: 'hackathonannova@gmail.com',
       emailPass: 'wmrs korv trik gljn',
-      userEmailVerificationUrl: 'https://192.168.0.102:443/register/verify?token=',
-      vendorEmailVerificationUrl: 'https://192.168.0.102:443/vendor/register/verify?token=',
-      venueEmailVerificationUrl: 'https://192.168.0.102:443/venue/register/verify?token='
+      userEmailVerificationUrl: `https://${this.ip}:443/register/verify?token=`, // Updated line
+      vendorEmailVerificationUrl: `https://${this.ip}:443/vendor/register/verify?token=`, // Updated line
+      venueEmailVerificationUrl: `https://${this.ip}:443/venue/register/verify?token=` // Updated line
     },
     google:{
       googleClientId: '437139881682-kqisnb3c0k7to308uacbh7bklvnou9tq.apps.googleusercontent.com',

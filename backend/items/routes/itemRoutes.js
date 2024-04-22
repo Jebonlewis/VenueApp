@@ -5,66 +5,156 @@ const itemService = require('../service/itemService');
 const fs = require('fs');
 const multer  = require('multer');
 const Vendor = require('../../Auth/models/Vendors');
+const Item = require('../models/Items');
+const mongoose = require('mongoose');
+const config=require('../../Auth/config/authConfig');
+const { GridFSBucket,
+   ObjectID } = require('mongodb');
+const path=require('path');
 
-const storage = multer.memoryStorage(); // Store files in memory
 
-// Initialize multer with the defined storage
-const upload = multer({ storage: storage, limits: { fileSize: 80 * 1024 * 1024 } });
-
-// Route to create a new item
-routerItem.post('/',upload.single('image') ,async (req, res) => {
-  try {
-    console.log("called item");
-    if (req.file) {
-      console.log("imageFile:", req.file);
-      const imageFile = {
-          // buffer: fs.readFileSync(req.file.path), // Read file contents
-          // originalname: req.file.originalname // Retain original name
-          buffer: req.file.buffer, // Access the file buffer directly
-          originalname: req.file.originalname 
-      };
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Specify the directory where images will be stored
+      cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+      // Generate a unique filename using the document id
+      const filename = file.originalname; // You can customize the filename if needed
+      cb(null, filename);
+    }
+  });
   
-    const { email, itemDetails} = req.body;
-        console.log(req.body);
-        console.log("item detailes",itemDetails);
-        console.log(typeof(itemDetails));
-        console.log(email);
+  const upload = multer({ storage: storage });
+  
+  routerItem.post('/', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file received' });
+        }
 
-        // Query the database to find the vendor document based on the provided email
+        const { email, itemDetails } = req.body;
         const vendor = await Vendor.findOne({ email: email }, '_id');
+
         if (!vendor) {
             throw new Error('Vendor not found');
         }
 
-        // Extract the vendor ID from the vendor document
         const vendorId = vendor._id;
-        console.log("vendorId 1  ",vendorId);
-    const newItem = await itemService.createItem(itemDetails,imageFile,vendorId);
-    res.status(201).json(newItem);
-      }
-  else {
-    console.log("No imageFile received");
-  }
-  } catch (error) {
-    console.error('Error creating item:', error);
-    res.status(400).json({ error: 'Failed to create item' });
-  }
+        const itemDetail = JSON.parse(itemDetails);
+
+        // Create a new item document
+        const newItem = new Item({
+            vendorId: vendorId,
+            itemName: itemDetail.itemName,
+            aboutItem: itemDetail.aboutItem,
+            price: itemDetail.price,
+            // Other item details here...
+        });
+
+        // Save the new item to the database
+        await newItem.save();
+
+        // Move the uploaded image to the folder with its name as the id of the document
+        const imagePath = `uploads/${newItem._id}.${req.file.originalname.split('.').pop()}`;
+        fs.renameSync(req.file.path, imagePath);
+
+        return res.status(201).json({ success: true, message: 'Item created successfully' });
+    } catch (error) {
+        console.error('Error creating item:', error);
+
+        // If an error occurs, delete the uploaded image
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        return res.status(400).json({ error: 'Failed to create item' });
+    }
 });
 
-// Add more routes as needed...
+// routerItemDisplay.get('/', async (req, res) => {
+//   try {
+//     // Extract the vendor ID from the request parameters
+//     const email = req.query.email;
+//     const vendor = await Vendor.findOne({ email: email }, '_id');
+//     const vendorId = vendor._id;
+
+//     // Find all items belonging to the vendor
+//     const items = await Item.find({ vendorId: vendorId }, '_id');
+
+//     const images = [];
+
+//     // Iterate through each item to send image files
+//     for (const item of items) {
+//       // Construct the filename using the item ID
+//       const filename = `${item._id}.jpg`; // Assuming the images have a '.jpg' extension
+
+//       // Check if the image file exists in the folder
+//       const imagePath = path.join(__dirname, '..', '..', 'uploads', filename);
+
+//       if (fs.existsSync(imagePath)) {
+//         // Read the image file and encode it as base64
+//         const imageBuffer = fs.readFileSync(imagePath);
+//         const base64Image = imageBuffer.toString('base64');
+
+//         // Push the filename and base64 encoded image to the images array
+//         images.push({ filename: filename, image: base64Image });
+//       }
+//     }
+
+//     // Send the images array as JSON response
+//     res.json(images);
+//   } catch (error) {
+//     console.error('Error retrieving images:', error);
+//     res.status(500).json({ error: 'Failed to retrieve images' });
+//   }
+// });
 
 routerItemDisplay.get('/', async (req, res) => {
   try {
+    // Extract the vendor ID from the request parameters
     const email = req.query.email;
     const vendor = await Vendor.findOne({ email: email }, '_id');
-    const vendorId=vendor._id;
-    const images = await itemService.getImagesByVendorId(vendorId);
-    res.json(images);
+    const vendorId = vendor._id;
+
+    // Find all items belonging to the vendor
+    const items = await Item.find({ vendorId: vendorId });
+
+    const dataToSend = [];
+
+    // Iterate through each item
+    for (const item of items) {
+      // Construct the filename using the item ID
+      const filename = `${item._id}.jpg`; // Assuming the images have a '.jpg' extension
+
+      // Check if the image file exists in the folder
+      const imagePath = path.join(__dirname, '..', '..', 'uploads', filename);
+
+      if (fs.existsSync(imagePath)) {
+        // Read the image file and encode it as base64
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+
+        // Push the filename and base64 encoded image to the images array
+        const imageData = { filename: filename, image: base64Image };
+        
+        // Add item details to the data
+        const itemData = {
+          itemDetails: item,
+          imageData: imageData
+        };
+
+        dataToSend.push(itemData);
+      }
+    }
+
+    // Send the data array as JSON response
+    res.json(dataToSend);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error retrieving images:', error);
+    res.status(500).json({ error: 'Failed to retrieve images and item data' });
   }
 });
-
 
 
 module.exports ={ 
