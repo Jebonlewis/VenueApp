@@ -44,50 +44,61 @@ const vendorSchema = new mongoose.Schema({
   email: String,
   password: String,
   authenticationType: {
-    type: String,
-    enum: ['google', 'facebook', 'simple']
+      type: String,
+      enum: ['google', 'facebook', 'simple']
   },
   email_verified: {
-    type: Boolean,
-    default: true
+      type: Boolean,
+      default: true
   },
   contact_verified: {
-    type: Boolean,
-    default: false
+      type: Boolean,
+      default: false
   },
   active_state: {
-    type: Boolean,
-    default: true
+      type: Boolean,
+      default: true
   },
   serviceType: String,
   branchName: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
   aboutBranch: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
   address: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
   city: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
   state: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
   country: {
-    type: String,
-    default: null
+      type: String,
+      default: null
   },
-  // image: {
-  //   type:String,
-  //   default:null
-  // }
+  location_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'VendorLocation' ,
+      default:null// Reference to VendorLocationSchema
+  },
+  serviceCategory: {
+      type: String,
+      enum: [
+        'Caterer',
+        'Sounds',
+        'Decorator',
+        // Add more cities as needed
+      ],
+      default:null
+  }
 }, {
   timestamps: true
 });

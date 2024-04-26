@@ -25,6 +25,7 @@ const routerPackage = require('./Packages/routes/packageRoute');
 const routerVenueDetailes = require('./venueDetails/routes/venueDetailsRoutes');
 const {routerItem,routerItemDisplay} = require('./items/routes/itemRoutes');
 const {routerNoofHalls,routerHallDetails} = require('./venueDetails/routes/venueDetailsRoutes');
+const routerVenueSearchVendor = require('./location/routes/venueSearchVendorRoutes');
 const app = express();
 
 app.use(cors());
@@ -59,7 +60,7 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Route Middleware
 app.use('/register', routerRegister);
-app.use('/', routerGoogle);
+//app.use('/', routerGoogle);
 app.use('/protected', routerProtected);
 app.use('/logout',routerLogout);
 app.use('/login',routerSimpleLogin);
@@ -75,6 +76,7 @@ app.use('/vendor/images',routerItemDisplay);
 app.use('/venue/home/screen',routerNoofHalls);
 app.use('/venue/hallDetails',routerHallDetails);
 app.use('/search/location/',routerLocation);
+app.use('/venue/search/vendor',routerVenueSearchVendor);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

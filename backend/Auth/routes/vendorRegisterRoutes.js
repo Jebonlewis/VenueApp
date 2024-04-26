@@ -1,20 +1,30 @@
 const express = require('express');
 const routerVendorRegister = express.Router();
 const routerBranch = express.Router();
-
-const multer  = require('multer');
 const Vendor=require('../models/Vendors')
+const VendorLocation=require('../../location/models/vendorLocation')
 const vendorService = require('../service/vendorRegisterService');
 const fs = require('fs');
-
-const storage = multer.memoryStorage(); // Store files in memory
-
-// Initialize multer with the defined storage
-const upload = multer({ storage: storage, limits: { fileSize: 80 * 1024 * 1024 } });
-
+const multer  = require('multer');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Specify the directory where images will be stored
+      cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+      // Generate a unique filename using the document id
+      const filename = file.originalname; // You can customize the filename if needed
+      cb(null, filename);
+    }
+  });
+  
+  const upload = multer({ storage: storage });
 // Register route
 routerVendorRegister.post('/', async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file received' });
+        }
         console.log('checking vendor register');
         console.log('req.body',req.body);
         const result = await vendorService.vendorRegister(req.body);
@@ -47,51 +57,81 @@ routerVendorRegister.get('/verify', async (req, res) => {
 });
 
 // routerBranch.post('/', upload.single('image'), async (req, res) => {
-routerBranch.post('/',  upload.single('image'),async (req, res) => {
-    console.log("called branch");
-    console.log(req.body);
-    if (req.file) {
-        console.log("imageFile:", req.file);
-        const imageFile = {
-            // buffer: fs.readFileSync(req.file.path), // Read file contents
-            // originalname: req.file.originalname // Retain original name
-            buffer: req.file.buffer, // Access the file buffer directly
-            originalname: req.file.originalname 
-        };
-   
+    routerBranch.post('/', upload.single('image'), async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ error: 'No image file received' });
+            }
     
-    try {
-        const { email, branchDetails } = req.body;
-        console.log(typeof(branchDetails));
-        console.log(email);
-
-        // Query the database to find the vendor document based on the provided email
-        const vendor = await Vendor.findOne({ email: email }, '_id');
-
-        if (!vendor) {
-            throw new Error('Vendor not found');
+            const { email, branchDetails } = req.body;
+            console.log(typeof branchDetails);
+            console.log(branchDetails);
+            console.log(email);
+    
+            // Query the database to find the vendor document based on the provided email
+            const vendor = await Vendor.findOne({ email });
+    
+            if (!vendor) {
+                throw new Error('Vendor not found');
+            }
+    
+            // Extract the vendor ID from the vendor document
+            const vendorId = vendor._id;
+            console.log("vendorId 1  ", vendorId);
+            const branchDetail = JSON.parse(branchDetails);
+            console.log("latitude", typeof branchDetail['latitude']);
+            console.log("Longitude", typeof branchDetail['longitude']);
+            console.log("latitude", branchDetail['latitude']);
+            console.log("Longitude", branchDetail['longitude']);
+            const latitude = parseFloat(branchDetail['latitude']);
+            const longitude = parseFloat(branchDetail['longitude']);
+            console.log("latitude", latitude);
+            console.log("Longitude", longitude);
+            // Check if latitude and longitude are valid
+            if (isNaN(latitude) || isNaN(longitude)) {
+                throw new Error('Invalid latitude or longitude');
+            }
+    
+            const location = {
+                type: "Point",
+                coordinates: [longitude, latitude],
+            };
+    
+            // Update vendor branch details
+            vendor.branchName = branchDetail.branchName;
+            vendor.aboutBranch = branchDetail.aboutBranch;
+            vendor.address = branchDetail.address;
+            vendor.city = branchDetail.city;
+            vendor.state = branchDetail.state;
+            vendor.country = branchDetail.country;
+    
+            // Save the updated vendor document
+            await vendor.save();
+    
+            // Save the VenueLocation document to the database only if the vendor details are successfully saved
+            const newVendorLocation = new VendorLocation({
+                vendorDetails_id: vendorId,
+                location
+            });
+            savedVenueLocation = await newVendorLocation.save();
+            const location_id = savedVenueLocation._id;
+    
+            vendor.location_id = location_id;
+            await vendor.save();
+            // Rename the uploaded image file with vendor ID
+            const imagePath = `uploads/${vendor._id}.${req.file.originalname.split('.').pop()}`;
+            fs.renameSync(req.file.path, imagePath);
+    
+            return res.status(201).json({ success: true, message: 'Item created successfully' });
+    
+        } catch (error) {
+            console.error('Error occurred while updating branch details:', error);
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
+            res.status(400).json({ error: error.message });
         }
-
-        // Extract the vendor ID from the vendor document
-        const vendorId = vendor._id;
-        console.log("vendorId 1  ",vendorId);
-        // Check if file exists
-        if (!req.file) {
-            throw new Error('No image uploaded');
-        }
-
-        // Call the service function to update branch details and store image for the vendor
-        const result = await vendorService.updateBranchDetailsWithImage(vendorId, branchDetails,imageFile);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Error occurred while updating branch details:', error);
-        res.status(400).json({ error: error.message });
-    }
-}
-else {
-    console.log("No imageFile received");
-}
-});
+    });
 
 module.exports= {
     routerVendorRegister,

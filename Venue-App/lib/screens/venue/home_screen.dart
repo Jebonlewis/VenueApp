@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:venue/components/custom_button.dart';
+import 'package:venue/components/navigator.dart';
+import 'package:venue/screens/overlay_filter.dart';
+import 'package:venue/screens/profile_screen.dart';
 import 'package:venue/screens/venue/form_screen.dart';
 import 'dart:convert'; // Import this for JSON encoding
 import 'package:http/http.dart' as http; // Import the http package
@@ -190,7 +193,7 @@ void _searchAndSaveLocation() {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.0.102:443/venue/home/screen'),
+        Uri.parse('http://192.168.43.160:443/venue/home/screen'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);
@@ -208,6 +211,34 @@ void _searchAndSaveLocation() {
       // Handle error
       print('Error: $error');
     }
+  }
+
+  int _selectedIndex = 0;
+
+ void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      if (_selectedIndex == 1) {
+        // Profile icon index
+        // Navigate to the profile page
+        NavigationUtils.navigateToPage(context, OverlayFilter());
+      }
+      else  if (_selectedIndex == 3) {
+        // Profile icon index
+        // Navigate to the profile page
+        NavigationUtils.navigateToPage(context, ProfileScreen());
+      }
+       else  if (_selectedIndex == 0) {
+        // Profile icon index
+        // Navigate to the profile page
+        // NavigationUtils.navigateToPage(context, VenueExplore());
+      }
+      else  if (_selectedIndex == 2) {
+        // Profile icon index
+        // Navigate to the profile page
+        // NavigationUtils.navigateToPage(context,OrderScreen());
+      }
+    });
   }
 
   @override
@@ -587,6 +618,32 @@ void _searchAndSaveLocation() {
             ),
           ),
         ),
+       
+
+      ),
+       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.blue, // Color when selected
+        unselectedItemColor: Colors.grey, // Color when not selected
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: 'Explore',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/explore_screen.dart';
 import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/user/register_screen.dart';
@@ -30,6 +31,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String ipAddress=Configip.ip;
   final TokenManager _tokenManager = TokenManager();
   bool _obscureText = true;
   bool _rememberMe = false;
@@ -78,7 +80,7 @@ Future<void> _login() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('https://192.168.0.102:443/login'),
+       Uri.parse('http://$ipAddress:443/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);

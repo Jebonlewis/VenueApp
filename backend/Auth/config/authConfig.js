@@ -13,9 +13,9 @@ const config = {
       emailService: 'gmail',
       emailUser: 'hackathonannova@gmail.com',
       emailPass: 'wmrs korv trik gljn',
-      userEmailVerificationUrl: `https://${this.ip}:443/register/verify?token=`, // Updated line
-      vendorEmailVerificationUrl: `https://${this.ip}:443/vendor/register/verify?token=`, // Updated line
-      venueEmailVerificationUrl: `https://${this.ip}:443/venue/register/verify?token=` // Updated line
+      userEmailVerificationUrl: `http://${this.ip}:443/register/verify?token=`, // Updated line
+      vendorEmailVerificationUrl: `http://${this.ip}:443/vendor/register/verify?token=`, // Updated line
+      venueEmailVerificationUrl: `http://${this.ip}:443/venue/register/verify?token=` // Updated line
     },
     google:{
       googleClientId: '437139881682-kqisnb3c0k7to308uacbh7bklvnou9tq.apps.googleusercontent.com',

@@ -99,7 +99,7 @@ class _FormPageState extends State<FormPage> {
 
     // Create a multipart request
     var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('https://192.168.0.102:443/venue/hallDetails'));
+        'POST', Uri.parse('http://192.168.43.160:443/venue/hallDetails'));
 
       multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
       multipartRequest.fields['hallDetails'] = jsonEncode({

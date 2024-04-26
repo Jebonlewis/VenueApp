@@ -119,7 +119,7 @@ class _SignupVenueState extends State<SignupVenue> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.0.102:443/venue/register'),
+        Uri.parse('http://192.168.43.160:443/venue/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);

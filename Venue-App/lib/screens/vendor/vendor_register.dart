@@ -125,7 +125,7 @@ class _SignupVendorState extends State<SignupVendor> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('https://192.168.0.102:443/vendor/register'),
+        Uri.parse('http://192.168.43.160:443/vendor/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);

@@ -35,6 +35,9 @@ const vendorRegisterValidation = Joi.object({
     city: Joi.string().default(null),
     state: Joi.string().default(null),
     country: Joi.string().default(null),
+    location_id: Joi.string().allow(null).default(null),
+    serviceCategory: Joi.string().valid('Catering', 'DJ', 'Decorators').allow(null).default(null)
+
     
   });
   

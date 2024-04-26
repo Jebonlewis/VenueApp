@@ -1,7 +1,7 @@
 const express = require('express');
 const VenueDetails = require("../models/venueDetails");
 const Venue = require('../../Auth/models/venue');
-const VenueLocation = require('../../location/models/location');
+const VenueLocation = require('../../location/models/venueLocation');
 const routerNoofHalls = express.Router();
 const routerHallDetails = express.Router();
 const multer  = require('multer');
@@ -19,11 +19,11 @@ routerNoofHalls.post('/', async (req, res) => {
     const venue = await Venue.findOne({ email: email }, '_id');
     const venue_id = venue._id;
     const existingVenue = await VenueDetails.findOne({venue_id });
-    // if (existingVenue){
-    //   console.log('venue already exist');
-    //   res.status(500).json({ message: 'venue already exist' });
-    // }
-    // else{
+    if (existingVenue){
+      console.log('venue already exist');
+      res.status(500).json({ message: 'venue already exist' });
+    }
+    else{
 
     // Find the venue based on email
     
@@ -64,7 +64,7 @@ routerNoofHalls.post('/', async (req, res) => {
 
     res.status(201).json({ message: 'Venue details stored successfully' });
   } 
-// }
+}
 catch (error) {
     console.error(error);
     // If there's an error, delete the associated VenueLocation

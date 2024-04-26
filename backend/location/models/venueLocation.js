@@ -16,3 +16,5 @@ VenueLocationSchema.index({ location: "2dsphere" });
 const VenueLocation = mongoose.model('VenueLocation', VenueLocationSchema);
 
 module.exports = VenueLocation;
+
+

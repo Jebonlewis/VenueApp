@@ -1,6 +1,6 @@
 
 const VenueDetails = require("../../venueDetails/models/venueDetails");
-const Location = require("../models/location");
+const Location = require("../models/venueLocation");
 
 async function searchNearestVenue(locationData) {
   try {

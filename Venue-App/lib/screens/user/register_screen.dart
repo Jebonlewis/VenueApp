@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/explore_screen.dart';
 import 'package:venue/screens/user/login_screen.dart';
 import 'package:venue/screens/search_screen.dart';
@@ -21,6 +22,8 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+    
+  String ipAddress=Configip.ip;
   bool _obscureText = true;
   String? _emailValidationError;
   String? _passwordValidationError;
@@ -112,7 +115,7 @@ Future<void> signUp() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.118.241.155:8000/register'),
-       Uri.parse('https://192.168.0.102:443/register'),
+       Uri.parse('http://$ipAddress:443/register'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);

@@ -19,37 +19,153 @@ class BranchDetails extends StatefulWidget {
 }
 
 class _BranchDetailsState extends State<BranchDetails> {
-  String? selectedCity;
-  String? selectedState;
-  String? selectedCountry;
+  TextEditingController _searchController = TextEditingController();
+  String _selectedPlace = '';
+  String _selectedLocation = '';
+  List<String> _suggestions = [];
+  String _latitude = '';
+  String _longitude = '';
+  String selectedCity = '';
+  String selectedCountry = '';
+  String selectedState = '';
+  bool _isSearching = false;
+  String? selectedVendor;
+  // String? selectedState;
+  // String? selectedCountry;
 
-  List<String> cityList = [
-    'New York',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
+  List<String> vendorList = [
+    'Caterer',
+    'Sounds',
+    'Decorator',
     // Add more cities as needed
   ];
 
-  List<String> stateList = [
-    'State 1',
-    'State 2',
-    'State 3',
-    // Add more states as needed
-  ];
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
 
-  List<String> countryList = [
-    'Country 1',
-    'Country 2',
-    'Country 3',
-    // Add more countries as needed
-  ];
+    super.dispose();
+  }
+
+  void _saveLocation(String location, String latitude, String longitude) {
+    print('Location saved: $location');
+    print('Latitude saved: $latitude');
+    print('Longitude saved: $longitude');
+    print('Contry saved: $selectedCountry');
+    print('State saved: $selectedState');
+
+  }
+
+  Future<void> _getSuggestions(String query) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&types=geocode&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['predictions'].isNotEmpty) {
+        setState(() {
+          _suggestions.clear();
+          for (var prediction in data['predictions']) {
+            _suggestions.add(prediction['description']);
+          }
+        });
+      }
+    } catch (e) {
+      print('Error getting suggestions: $e');
+    }
+  }
+
+  void _searchAndSaveLocation() {
+    if (!_isSearching) {
+      setState(() {
+        _isSearching = true;
+      });
+      _searchLocation(_searchController.text);
+      _saveLocation(_selectedPlace, _latitude, _longitude);
+    }
+  }
+
+  Future<void> _searchLocation(String query) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&types=geocode&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['predictions'].isNotEmpty) {
+        final placeId = data['predictions'][0]['place_id'];
+        _getPlaceDetails(placeId);
+      } else {
+        setState(() {
+          _selectedPlace = 'No results found';
+        });
+      }
+    } catch (e) {
+      print('Error searching location: $e');
+    }
+  }
+
+  Future<void> _getPlaceDetails(String placeId) async {
+    try {
+      final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
+      final url =
+          'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$apiKey';
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK' && data['result'] != null) {
+        final formattedAddress = data['result']['formatted_address'];
+        final addressComponents = data['result']['address_components'];
+
+        String city = '';
+        String state = '';
+        String country = '';
+
+        for (var component in addressComponents) {
+          List types = component['types'];
+          if (types.contains('locality')) {
+            city = component['long_name'];
+          } else if (types.contains('administrative_area_level_1')) {
+            state = component['long_name'];
+          } else if (types.contains('country')) {
+            country = component['long_name'];
+          }
+        }
+
+        final latitude = data['result']['geometry']['location']['lat'];
+        final longitude = data['result']['geometry']['location']['lng'];
+
+        setState(() {
+          _selectedPlace = formattedAddress;
+          _selectedLocation = 'Latitude: $latitude, Longitude: $longitude';
+          _latitude = latitude.toString();
+          _longitude = longitude.toString();
+          selectedCity = city;
+          selectedState = state;
+          selectedCountry = country;
+        });
+      } else {
+        setState(() {
+          _selectedPlace = 'No results found';
+          _selectedLocation = '';
+          _latitude = '';
+          _longitude = '';
+          selectedCity = '';
+          selectedState = '';
+          selectedCountry = '';
+        });
+      }}
+ catch (e) {
+      print('Error getting place details: $e');
+    }
+  }
 
   File? _image;
   final picker = ImagePicker();
@@ -70,102 +186,106 @@ class _BranchDetailsState extends State<BranchDetails> {
     });
   }
 
-  
-Future<void> _uploadBranchDetails(BuildContext context) async {
-  try {
-    // Get values from input fields
-    String branchName = _branchNameController.text;
-    String aboutBranch = _aboutBranchController.text;
-    String address = _addressController.text;
-    String city = selectedCity ?? '';
-    String state = selectedState ?? '';
-    String country = selectedCountry ?? '';
+  Future<void> _uploadBranchDetails(BuildContext context) async {
+    try {
+      // Get values from input fields
+      String branchName = _branchNameController.text;
+      String aboutBranch = _aboutBranchController.text;
+      String address = _addressController.text;
+      // String city = selectedVendor ?? '';
+      // String state = selectedState ?? '';
+      // String country = selectedCountry ?? '';
 
-    // Validate if any required field is empty
-    if (branchName.isEmpty ||
-        aboutBranch.isEmpty ||
-        address.isEmpty ||
-        city.isEmpty ||
-        state.isEmpty ||
-        country.isEmpty) {
-      // Handle empty fields error
-      print('Please fill all fields');
-      return;
-    }
+      // Validate if any required field is empty
+      if (branchName.isEmpty ||
+          aboutBranch.isEmpty ||
+          address.isEmpty   
+          ) {
+        // Handle empty fields error
+        print('Please fill all fields');
+        return;
+      }
 
-    // Create an IOClient with a custom HttpClient that accepts all certificates
-    final ioClient = IOClient(HttpClient()
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true);
+      // Create an IOClient with a custom HttpClient that accepts all certificates
+      final ioClient = IOClient(HttpClient()
+        ..badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true);
 
-    // Create a multipart request
-    var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('http://192.168.0.102:443/branch'));
+      // Create a multipart request
+      var multipartRequest = http.MultipartRequest(
+          'POST', Uri.parse('http://192.168.43.160:443/branch'));
 
-    // Add JSON data to multipart request
-    multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
-    multipartRequest.fields['branchDetails'] = jsonEncode({
-      'branchName': branchName,
-      'aboutBranch': aboutBranch,
-      'address': address,
-      'city': city,
-      'state': state,
-      'country': country,
-    });
+      // Add JSON data to multipart request
+      multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
+      multipartRequest.fields['branchDetails'] = jsonEncode({
+        'branchName': branchName,
+        'aboutBranch': aboutBranch,
+        'address': address,
+        'city': selectedCity,
+        'state': selectedState,
+        'country': selectedCountry,
+        'latitude':_latitude,
+        'longitude':_longitude,
+        'serviceCategory':selectedVendor
+      });
 
-    // Add image file to multipart request
-    if (_image != null) {
-      var imageFile = await http.MultipartFile.fromPath(
-        'image',
-        _image!.path,
-        contentType: MediaType('image', 'jpeg'),
-      );
-      multipartRequest.files.add(imageFile);
-    } else {
-      print('No image selected.');
-    }
+      // Add image file to multipart request
+      if (_image != null) {
+        var imageFile = await http.MultipartFile.fromPath(
+          'image',
+          _image!.path,
+          contentType: MediaType('image', 'jpeg'),
+        );
+        multipartRequest.files.add(imageFile);
+      } else {
+        print('No image selected.');
+      }
 
-    // Send the multipart request using the custom IOClient
-    var streamedResponse =
-        await ioClient.send(multipartRequest).timeout(Duration(seconds: 60));
+      // Send the multipart request using the custom IOClient
+      var streamedResponse =
+          await ioClient.send(multipartRequest).timeout(Duration(seconds: 60));
 
-    // Process the response
-    var response = await http.Response.fromStream(streamedResponse);
+      // Process the response
+      var response = await http.Response.fromStream(streamedResponse);
 
-       if (response.statusCode == HttpStatus.ok) {
-      // Handle successful response
-      print('Branch details uploaded successfully');
+      if (response.statusCode == 201) {
+        // Handle successful response
+        print('Branch details uploaded successfully');
 
-      // Navigate to the Add Item page
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AddItems()), // Adjust with your AddItems page
-      );
+        // Navigate to the Add Item page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  AddItems()), // Adjust with your AddItems page
+        );
 
-      // Display success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Branch details uploaded successfully')),
-      );
-    } else {
-      // Handle unsuccessful response
-      print('Failed to upload branch details: ${response.reasonPhrase}');
+        // Display success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Branch details uploaded successfully')),
+        );
+      } else {
+        // Handle unsuccessful response
+        print('Failed to upload branch details: ${response.reasonPhrase}');
+
+        // Display error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Failed to upload branch details: ${response.reasonPhrase}')),
+        );
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error uploading branch details: $e');
 
       // Display error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload branch details: ${response.reasonPhrase}')),
+        SnackBar(content: Text('Error uploading branch details: $e')),
       );
     }
-  } catch (e) {
-    // Handle errors
-    print('Error uploading branch details: $e');
-
-    // Display error message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error uploading branch details: $e')),
-    );
   }
-}
-  
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -254,6 +374,55 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                       ],
                     ),
                   ),
+                  SizedBox(height: 15),
+                  Container(
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Vendor Type',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Container(
+                          padding: EdgeInsets.only(left: paddingleft),
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.4),
+                            ),
+                          ),
+                          child: Center(
+                            child: DropdownButtonFormField<String>(
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: "Select Type Of Vendor",
+                                hintStyle: TextStyle(color: Colors.grey),
+                              ),
+                              value: selectedVendor,
+                              onChanged: (String? value) {
+                                setState(() {
+                                  selectedVendor = value;
+                                });
+                              },
+                              items: vendorList.map((String vendor) {
+                                return DropdownMenuItem<String>(
+                                  value: vendor,
+                                  child: Text(vendor),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.05,
                   ),
@@ -275,12 +444,14 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                         color: Colors.grey.withOpacity(0.4),
                       ),
                     ),
-                    child: TextField(
-                      controller: _branchNameController,
-                      decoration: InputDecoration(
-                        hintText: "Enter Branch Name",
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
+                    child: Center(
+                      child: TextField(
+                        controller: _branchNameController,
+                        decoration: InputDecoration(
+                          hintText: "Enter Branch Name",
+                          hintStyle: TextStyle(color: Colors.grey),
+                          border: InputBorder.none,
+                        ),
                       ),
                     ),
                   ),
@@ -351,14 +522,16 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                         color: Colors.grey.withOpacity(0.4),
                       ),
                     ),
-                    child: TextField(
-                      controller: _addressController,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Address Here",
-                        hintStyle: TextStyle(color: Colors.grey),
+                    child: Center(
+                      child: TextField(
+                        controller: _addressController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Address Here",
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
                   ),
@@ -373,7 +546,7 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'City',
+                    'Location',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -390,122 +563,52 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                         color: Colors.grey.withOpacity(0.4),
                       ),
                     ),
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Select City",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      value: selectedCity,
-                      onChanged: (String? value) {
-                        setState(() {
-                          selectedCity = value;
-                        });
-                      },
-                      items: cityList.map((String city) {
-                        return DropdownMenuItem<String>(
-                          value: city,
-                          child: Text(city),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'State',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
+                    child: Center(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Enter Location Here",
+                          hintStyle: TextStyle(color: Colors.grey),
+                          // suffixIcon: IconButton(
+                          //   icon: Icon(Icons.search),
+                          //   onPressed: () {
+                          //     _searchLocation(_searchController.text);
+                          //   },
+                          // ),
+                        ),
+                        onChanged: (value) {
+                          _getSuggestions(value);
+                        },
                       ),
                     ),
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Select State",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      value: selectedState,
-                      onChanged: (String? value) {
-                        setState(() {
-                          selectedState = value;
-                        });
-                      },
-                      items: stateList.map((String state) {
-                        return DropdownMenuItem<String>(
-                          value: state,
-                          child: Text(state),
-                        );
-                      }).toList(),
-                    ),
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: 15),
-            Container(
-              alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Country',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Select Country",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      value: selectedCountry,
-                      onChanged: (String? value) {
-                        setState(() {
-                          selectedCountry = value;
-                        });
-                      },
-                      items: countryList.map((String country) {
-                        return DropdownMenuItem<String>(
-                          value: country,
-                          child: Text(country),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                  _suggestions.isNotEmpty
+                      ? Padding(
+                          padding: EdgeInsets.only(
+                            left: paddingleft,
+                            top: 6,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: _suggestions
+                                .map((suggestion) => GestureDetector(
+                                      onTap: () {
+                                        _searchController.text = suggestion;
+                                        _searchLocation(suggestion);
+                                      },
+                                      child: Text(
+                                        suggestion,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        )
+                      : Container(),
                 ],
               ),
             ),
@@ -520,6 +623,7 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
                     CustomButton(
                       onPressed: () {
                         _uploadBranchDetails(context);
+                        _saveLocation(_selectedPlace, _latitude, _longitude);
                         // NavigationUtils.navigateToPage(context, AddItems());
                       },
                       text: 'NEXT',
@@ -534,3 +638,4 @@ Future<void> _uploadBranchDetails(BuildContext context) async {
     );
   }
 }
+

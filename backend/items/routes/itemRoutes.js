@@ -2,8 +2,6 @@ const express = require('express');
 const routerItem = express.Router();
 const routerItemDisplay = express.Router();
 const itemService = require('../service/itemService');
-const fs = require('fs');
-const multer  = require('multer');
 const Vendor = require('../../Auth/models/Vendors');
 const Item = require('../models/Items');
 const mongoose = require('mongoose');
@@ -12,7 +10,8 @@ const { GridFSBucket,
    ObjectID } = require('mongodb');
 const path=require('path');
 
-
+const fs = require('fs');
+const multer  = require('multer');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       // Specify the directory where images will be stored
@@ -43,6 +42,7 @@ const storage = multer.diskStorage({
         const vendorId = vendor._id;
         const itemDetail = JSON.parse(itemDetails);
 
+        
         // Create a new item document
         const newItem = new Item({
             vendorId: vendorId,

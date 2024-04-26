@@ -94,18 +94,8 @@ async function verifyToken(token) {
 
 async function updateBranchDetailsWithImage(vendorId, branchDetails, imageFile) {
     try {
-        // Find the vendor by ID
-        await mongoose.connect(config.db.dbUrl);
+       
 
-        // Once connected, initialize GridFSBucket
-        const { GridFSBucket } = require('mongodb');
-        const gfs = new GridFSBucket(mongoose.connection.db, {
-          bucketName: 'vendorimage'
-        });
-
-    // Now you can use `gfs` for file storage operations
-
-        console.log("vendorId 2  ",vendorId);
         const vendor = await Vendor.findById(vendorId);
 
         if (!vendor) {
@@ -121,12 +111,7 @@ async function updateBranchDetailsWithImage(vendorId, branchDetails, imageFile) 
         vendor.country = branchDetails.country;
 
         // Store image in GridFS
-        const writeStream = gfs.openUploadStream(imageFile.originalname, {
-            metadata: { vendorId: vendorId }
-        });
-        writeStream.write(imageFile.buffer);
-        writeStream.end();
-
+        
         // Save the updated vendor document
         await vendor.save();
 

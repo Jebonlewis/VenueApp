@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Venue=require('../../Auth/models/venue')
-const Location=require('../../location/models/location')
+const Location=require('../../location/models/venueLocation')
 const Vendor=require('../../Auth/models/Vendors')
 
 // Define the VenueDetails schema
