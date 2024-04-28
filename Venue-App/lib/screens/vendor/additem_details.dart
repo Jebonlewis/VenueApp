@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/vendor/add_items.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
@@ -23,7 +24,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
   final TextEditingController _itemNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-
+  String ipAddress=Configip.ip;
   Future getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -57,7 +58,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
 
     // Create a multipart request
     var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('http://192.168.43.160:443/item'));
+        'POST', Uri.parse('http://$ipAddress:443/item'));
 
       multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
       multipartRequest.fields['itemDetails'] = jsonEncode({

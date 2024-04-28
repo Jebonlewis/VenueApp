@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/vendor/vendor_register.dart';
@@ -32,6 +33,7 @@ class VenueLoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<VenueLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String ipAddress=Configip.ip;
   final TokenManager _tokenManager = TokenManager();
   bool _obscureText = true;
   bool _rememberMe = false;
@@ -80,7 +82,7 @@ Future<void> venueLogin() async {
 
     var request = await httpClient.postUrl(
       //Uri.parse('https://34.125.168.131:8000/login'),
-       Uri.parse('http://192.168.43.160:443/venue/login'),
+       Uri.parse('http://$ipAddress:443/venue/login'),
     );
     request.headers.set('Content-Type', 'application/json');
     request.write(jsonData);
@@ -105,9 +107,19 @@ Future<void> venueLogin() async {
           MaterialPageRoute(builder: (context) => HomeVenue()),
         );
       } else {
-        // Login failed, handle the error
-        print('Login failed, Status Code: ${responseData}');
-      }
+  // Login failed, handle the error
+  Map<String, dynamic> errorMap = jsonDecode(responseData);
+  String errorMessage = errorMap['error']; // Extract error message from response
+  print('Login failed: $errorMessage');
+  // Display error message on the frontend
+  // For example, you can use a Snackbar to show the error message
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Login failed: $errorMessage'),
+      backgroundColor: Colors.red,
+    ),
+  );
+  }
     } catch (error) {
       // Handle network errors or exceptions
       print('Error occurred during login: $error');

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/vendor/add_items.dart';
 import 'package:venue/screens/choose_screen.dart';
 import 'package:http/io_client.dart';
@@ -20,6 +21,7 @@ class BranchDetails extends StatefulWidget {
 
 class _BranchDetailsState extends State<BranchDetails> {
   TextEditingController _searchController = TextEditingController();
+  String ipAddress=Configip.ip;
   String _selectedPlace = '';
   String _selectedLocation = '';
   List<String> _suggestions = [];
@@ -213,7 +215,7 @@ class _BranchDetailsState extends State<BranchDetails> {
 
       // Create a multipart request
       var multipartRequest = http.MultipartRequest(
-          'POST', Uri.parse('http://192.168.43.160:443/branch'));
+          'POST', Uri.parse('http://$ipAddress:443/branch'));
 
       // Add JSON data to multipart request
       multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';

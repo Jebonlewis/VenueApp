@@ -77,6 +77,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:venue/config.dart';
 
 class DisplayImages extends StatefulWidget {
   final String email;
@@ -88,7 +89,7 @@ class DisplayImages extends StatefulWidget {
 
 class _DisplayImagesState extends State<DisplayImages> {
   List<ItemData> itemDataList = [];
-
+  String ipAddress=Configip.ip;
   @override
   void initState() {
     super.initState();
@@ -97,7 +98,7 @@ class _DisplayImagesState extends State<DisplayImages> {
 
   Future<void> fetchItemData() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.43.160:443/vendor/images?email=${widget.email}'));
+      final response = await http.get(Uri.parse('http://$ipAddress:443/vendor/images?email=${widget.email}'));
       if (response.statusCode == 200) {
         final List<dynamic> responseData = json.decode(response.body);
         setState(() {

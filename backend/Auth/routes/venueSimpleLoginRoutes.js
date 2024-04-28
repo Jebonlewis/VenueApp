@@ -27,14 +27,14 @@ routerVenueLogin.post('/', async (req, res, next) => {
 
     if (!venue) {
      
-      return res.status(400).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid username' });
     }
 
     const passwordMatch = await bcrypt.compare(password, venue.password);
  
     if (!passwordMatch) {
     
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid  password' });
     }
     
     console.log(venue.authenticationType);

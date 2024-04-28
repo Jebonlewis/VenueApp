@@ -27,14 +27,14 @@ routerVendorLogin.post('/', async (req, res, next) => {
 
     if (!vendor) {
      
-      return res.status(400).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid username' });
     }
 
     const passwordMatch = await bcrypt.compare(password, vendor.password);
  
     if (!passwordMatch) {
     
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid password' });
     }
     
     console.log(vendor.authenticationType);

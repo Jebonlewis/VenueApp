@@ -16,7 +16,13 @@ const verificationTokens = {};
 async function vendorRegister(vendorData) {
     try {
         // Validate user data
-        await vendorRegisterValidation.validateAsync(vendorData);
+        const {error}=await vendorRegisterValidation.validateAsync(vendorData);
+        if (error) {
+            console.log("Validation error:", error.details[0].message);
+            return res.status(400).json({ error: error.details[0].message });
+          }
+
+       
 
         // Check if user already exists
         const existingUser = await User.findOne({ email: vendorData.email });
@@ -28,6 +34,11 @@ async function vendorRegister(vendorData) {
         }
 
         // Hash password
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(vendorData.password)) {
+            console.log('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+            return ({ error: 'Password must contain at  least one uppercase letter, one lowercase letter, one number, and one special character.' });
+        }
         
         const hashedPassword = await bcrypt.hash(vendorData.password, 10);
 

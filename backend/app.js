@@ -26,6 +26,7 @@ const routerVenueDetailes = require('./venueDetails/routes/venueDetailsRoutes');
 const {routerItem,routerItemDisplay} = require('./items/routes/itemRoutes');
 const {routerNoofHalls,routerHallDetails} = require('./venueDetails/routes/venueDetailsRoutes');
 const routerVenueSearchVendor = require('./location/routes/venueSearchVendorRoutes');
+const routerReset = require('./Auth/routes/resetPassRoutes');
 const app = express();
 
 app.use(cors());
@@ -77,6 +78,9 @@ app.use('/venue/home/screen',routerNoofHalls);
 app.use('/venue/hallDetails',routerHallDetails);
 app.use('/search/location/',routerLocation);
 app.use('/venue/search/vendor',routerVenueSearchVendor);
+app.use('/otp-request',routerReset),
+app.use('/reset',routerReset),
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

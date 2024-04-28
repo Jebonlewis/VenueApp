@@ -7,20 +7,25 @@ const vendorRegisterValidation = Joi.object({
     email: Joi.string().email().required().messages({
       'string.email': 'Email must be a valid email address',
       'string.empty': 'email is required'}),
-    password: Joi.when('authenticationType', {
-      is: Joi.not('google', 'facebook'),
-      then: Joi.string().required().min(8).messages({ 
-        'string.empty': 'Password is required',
-        'any.required': 'Password is required',
-        'string.min': 'Password must be at least 8 characters long'
-       }),
-      otherwise: Joi.string().allow('').optional()
-    }),
-    confirmPassword: Joi.string().when('authenticationType', {
-      is: Joi.not('google', 'facebook'),
-      then: Joi.string().valid(Joi.ref('password')).required().messages({ 'any.only': 'Passwords must match' }),
-      otherwise: Joi.string().allow('').optional()
-    }),
+      password: Joi.when('authenticationType', {
+        is: Joi.not('google', 'facebook'),
+        then: Joi.string().required().min(8).messages({ 
+          'string.empty': 'Password is required',
+          'any.required': 'Password is required',
+          'string.min': 'Password must be at least 8 characters long'
+         }),
+        otherwise: Joi.string().allow('').optional()
+      }),
+      confirmPassword: Joi.string().when('authenticationType', {
+        is: Joi.not('google', 'facebook'),
+        then: Joi.string().valid(Joi.ref('password')).required().messages({ 'any.only': 'Passwords must match' }),
+        otherwise: Joi.string().allow('').optional()
+      }),
+
+    serviceType:Joi.string().valid('Birthday',
+    'Music',
+    'Wedding',
+    'Corporate'),
     email_verified: Joi.boolean().default(true),
     contact_verified: Joi.boolean().default(false),
     active_state: Joi.boolean().default(true),
@@ -45,12 +50,12 @@ const vendorLoginValidation = Joi.object({
     email: Joi.string().email().required().messages({
       'string.email': 'Email must be a valid email address',
       'string.empty': 'email is required'}),
-    password: Joi.string().required().min(8).messages({ 
-      'string.empty': 'Password is required',
-      'any.required': 'Password is required',
-      'string.min': 'Password must be at least 8 characters long'
-     }),
-  });
+      password: Joi.string().required().min(8).messages({ 
+        'string.empty': 'Password is required',
+        'any.required': 'Password is required',
+        'string.min': 'Password must be at least 8 characters long'
+       }),
+    });
 
 module.exports = {
     vendorRegisterValidation,

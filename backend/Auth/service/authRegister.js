@@ -13,7 +13,12 @@ const verificationTokens = {};
 async function register(userData) {
     try {
         // Validate user data
-        await registerValidationSchema.validateAsync(userData);
+        const{error}=await registerValidationSchema.validateAsync(userData);
+        if (error) {
+            console.log("Validation error:", error.details[0].message);
+            // return res.status(400).json({ error: error.details[0].message });
+            throw new Error(error.details[0].message);
+        }
 
         // Check if user already exists
         const existingUser = await User.findOne({ email: userData.email });
@@ -21,10 +26,17 @@ async function register(userData) {
         const existingVenue= await Venue.findOne({email:userData.email});
         if (existingUser || existingVendor || existingVenue) {
             console.log('5');
-            return {error:'Email is already registered'};
+            // return {error:'Email is already registered'};
+            throw new Error('Email is already registered');
         }
 
         // Hash password
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(userData.password)) {
+            console.log('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+            // return ({ error: 'Password must contain at  least one uppercase letter, one lowercase letter, one number, and one special character.' });
+            throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+        }
         
         const hashedPassword = await bcrypt.hash(userData.password, 10);
 

@@ -105,9 +105,18 @@ Future<void> _login() async {
           MaterialPageRoute(builder: (context) => ExploreScreen()),
         );
       } else {
-        // Login failed, handle the error
-        print('Login failed, Status Code: ${responseData}');
-      }
+  // Login failed, handle the error
+  Map<String, dynamic> errorMap = jsonDecode(responseData);
+  String errorMessage = errorMap['error']; // Extract error message from response
+  print('Login failed: $errorMessage');
+  // Display error message on the frontend
+  // For example, you can use a Snackbar to show the error message
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Login failed: $errorMessage'),
+      backgroundColor: Colors.red,
+    ),
+  );}
     } catch (error) {
       // Handle network errors or exceptions
       print('Error occurred during login: $error');

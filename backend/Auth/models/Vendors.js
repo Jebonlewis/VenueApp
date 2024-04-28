@@ -37,6 +37,7 @@
 // module.exports = Vendor;
 
 
+const { string } = require('joi');
 const mongoose = require('mongoose');
 
 const vendorSchema = new mongoose.Schema({
@@ -59,7 +60,13 @@ const vendorSchema = new mongoose.Schema({
       type: Boolean,
       default: true
   },
-  serviceType: String,
+  serviceType: {
+   type:String,
+   enum:[ 'Birthday',
+  'Music',
+  'Wedding',
+  'Corporate',]
+},
   branchName: {
       type: String,
       default: null

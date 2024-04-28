@@ -121,42 +121,53 @@ Future<void> signUp() async {
     request.write(jsonData);
     var response = await request.close().timeout(Duration(seconds: 60));
 
-      if (response.statusCode == 200) {
-        // Check the response data for verification email sent message
-        var responseBody = await response.transform(utf8.decoder).join();
-        if (responseBody== 'Verification email sent') {
-          // Show success message
-          setState(() {
-            _emailValidationError = null;
-            _passwordValidationError = null;
-            _confirmPasswordValidationError = null;
-            _nameValidationError = null;
-            // Optionally, clear the form fields here
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Verification email sent. Please check your inbox.')),
-          );
-        } else {
-          // Handle other messages or errors
-          print(responseBody);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseBody)),
-          );
-        }
-      } else {
-        // Handle other status codes or errors
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred during registration')),
-        );
-      }
-    } catch (error) {
-      // Handle network errors or exceptions
+    if (response.statusCode == 200) {
+  // Check the response data for verification email sent message
+  var responseBody = await response.transform(utf8.decoder).join();
+  try {
+    Map<String, dynamic> responseData = json.decode(responseBody);
+    var message = responseData['message'];
+    if (message != null && message == 'Verification email sent') {
+      // Show success message
+      setState(() {
+        _emailValidationError = null;
+        _passwordValidationError = null;
+        _confirmPasswordValidationError = null;
+        _nameValidationError = null;
+        // Optionally, clear the form fields here
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during registration')),
+        SnackBar(content: Text('Verification email sent. Please check your inbox.')),
       );
+      return;
     }
+  } catch (e) {
+    // Handle JSON decoding error
+    print('Error decoding JSON response: $e');
   }
-
+  // Handle unexpected response format
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Unexpected response format from the server')),
+  );
+} else {
+  // Handle other status codes or errors
+  var errorMessage = 'An error occurred during registration';
+  if (response.statusCode == 400) {
+    var errorResponse = await response.transform(utf8.decoder).join();
+    Map<String, dynamic> errorData = json.decode(errorResponse);
+    errorMessage = errorData['error'] ?? errorMessage;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(errorMessage)),
+  );
+}
+} catch (error) {
+  // Handle network errors or exceptions
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('An error occurred during registration: $error')),
+  );
+}
+}
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;

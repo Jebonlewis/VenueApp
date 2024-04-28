@@ -7,6 +7,7 @@ import 'package:venue/components/custom_button.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/io_client.dart';
 import 'package:http/http.dart' as http;
+import 'package:venue/config.dart';
 
 class FormPage extends StatefulWidget {
   final int numberOfHalls;
@@ -27,7 +28,7 @@ class _FormPageState extends State<FormPage> {
   //final TextEditingController _addressController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-
+  String ipAddress=Configip.ip;
   final picker = ImagePicker();
   //String? selectedCity;
   String? selectedCategory;
@@ -99,7 +100,7 @@ class _FormPageState extends State<FormPage> {
 
     // Create a multipart request
     var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('http://192.168.43.160:443/venue/hallDetails'));
+        'POST', Uri.parse('http://$ipAddress:443/venue/hallDetails'));
 
       multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
       multipartRequest.fields['hallDetails'] = jsonEncode({

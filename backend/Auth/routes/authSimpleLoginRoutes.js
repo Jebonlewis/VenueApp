@@ -26,12 +26,12 @@ routerSimpleLogin.post('/', async (req, res, next) => {
     const user = await User.findOne({ email: email });
 
     if (!user) {
-      return res.status(400).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid username ' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(400).json({ error: 'Invalid password' });
     }
     console.log(user.authenticationType);
     const token = authService.generateToken(user._id,user.email,user.fullname,user.authenticationType,"user");

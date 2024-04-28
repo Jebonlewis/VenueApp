@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/profile_screen.dart';
 import 'package:venue/screens/venue/form_screen.dart';
@@ -17,6 +18,7 @@ class HomeVenue extends StatefulWidget {
 
 class _HomeVenueState extends State<HomeVenue> {
   TextEditingController _searchController = TextEditingController();
+  String ipAddress=Configip.ip;
   String _selectedPlace = '';
   String _selectedLocation = '';
   List<String> _suggestions = [];
@@ -193,7 +195,7 @@ void _searchAndSaveLocation() {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('http://192.168.43.160:443/venue/home/screen'),
+        Uri.parse('http://$ipAddress:443/venue/home/screen'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);

@@ -22,9 +22,6 @@ const storage = multer.diskStorage({
 // Register route
 routerVendorRegister.post('/', async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No image file received' });
-        }
         console.log('checking vendor register');
         console.log('req.body',req.body);
         const result = await vendorService.vendorRegister(req.body);

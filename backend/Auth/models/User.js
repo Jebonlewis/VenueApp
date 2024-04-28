@@ -1,4 +1,5 @@
 // models/User.js
+const { number } = require('joi');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -21,6 +22,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true, // Default value for active_state is true
   },
+  otp:{
+    type:Number,
+    default: null,
+  },
+  otpExpires: {
+    type: Date,
+    default: null,
+  }
 },
 {
   timestamps: true, // Add timestamps (createdAt, updatedAt)

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
 import 'package:venue/components/snack_bar.dart';
+import 'package:venue/config.dart';
 import 'package:venue/screens/vendor/branch_details.dart';
 import 'package:venue/screens/explore_screen.dart';
 //import 'package:venue/screens/login_screen.dart';
@@ -40,6 +41,7 @@ class _SignupVendorState extends State<SignupVendor> {
   String? _passwordValidationError;
   String? _confirmPasswordValidationError;
   String? _nameValidationError;
+  String ipAddress=Configip.ip;
 
   String? _validateName(String value) {
     // You can adjust the regular expression as per your name validation requirements
@@ -125,46 +127,59 @@ class _SignupVendorState extends State<SignupVendor> {
           (X509Certificate cert, String host, int port) => true;
 
       var request = await httpClient.postUrl(
-        Uri.parse('http://192.168.43.160:443/vendor/register'),
+        Uri.parse('http://$ipAddress:443/vendor/register'),
       );
       request.headers.set('Content-Type', 'application/json');
       request.write(jsonData);
       var response = await request.close().timeout(Duration(seconds: 60));
 
-      if (response.statusCode == 200) {
-        var responseBody = await response.transform(utf8.decoder).join();
-        if (responseBody == 'Verification email sent') {
-          setState(() {
-            _emailValidationError = null;
-            _passwordValidationError = null;
-            _confirmPasswordValidationError = null;
-            _nameValidationError = null;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Verification email sent. Please check your inbox.')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    responseBody ?? 'An error occurred during registration')),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred during registration')),
-        );
-      }
-    }catch (error) {
-      // Handle network errors or exceptions
+     if (response.statusCode == 200) {
+  // Check the response data for verification email sent message
+  var responseBody = await response.transform(utf8.decoder).join();
+  try {
+    Map<String, dynamic> responseData = json.decode(responseBody);
+    var message = responseData['message'];
+    if (message != null && message == 'Verification email sent') {
+      // Show success message
+      setState(() {
+        _emailValidationError = null;
+        _passwordValidationError = null;
+        _confirmPasswordValidationError = null;
+        _nameValidationError = null;
+        // Optionally, clear the form fields here
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during registration')),
+        SnackBar(content: Text('Verification email sent. Please check your inbox.')),
       );
-        // showSuccess(context, 'An Error Occurred During Registration') ;
+      return;
     }
+  } catch (e) {
+    // Handle JSON decoding error
+    print('Error decoding JSON response: $e');
   }
+  // Handle unexpected response format
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Unexpected response format from the server')),
+  );
+} else {
+  // Handle other status codes or errors
+  var errorMessage = 'An error occurred during registration';
+  if (response.statusCode == 400) {
+    var errorResponse = await response.transform(utf8.decoder).join();
+    Map<String, dynamic> errorData = json.decode(errorResponse);
+    errorMessage = errorData['error'] ?? errorMessage;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(errorMessage)),
+  );
+}
+} catch (error) {
+  // Handle network errors or exceptions
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('An error occurred during registration: $error')),
+  );
+}
+}
 
   @override
   Widget build(BuildContext context) {
