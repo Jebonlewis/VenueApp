@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
 import 'package:venue/config.dart';
+import 'package:venue/screens/otp_page.dart';
 import 'package:venue/screens/vendor/branch_details.dart';
 import 'package:venue/screens/logout.dart';
 import 'package:venue/screens/overlay_filter.dart';
@@ -274,7 +275,7 @@ Future<void> vendorLogin() async {
                           onTap: () {
                             NavigationUtils.navigateToPage(
                               context,
-                              ResetPassword(),
+                              OtpPage(),
                             );
                           },
                           child: Text(

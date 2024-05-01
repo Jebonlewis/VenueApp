@@ -23,7 +23,15 @@ const registerValidationSchema = Joi.object({
     }),
     authenticationType: Joi.string().valid('google', 'facebook', 'simple').optional(),
     otp: Joi.number().optional(),
-    otpExpires: Joi.date().optional()
+    otpExpires: Joi.date().optional(),
+    contact: Joi.string().optional(),
+    gender: Joi.string().optional()
+    // contact: Joi.string().optional().regex(/^\d{10}$/).messages({
+    //   'string.pattern.base': 'Contact must be a valid 10-digit number'
+    // }),
+    // gender: Joi.string().valid('male', 'female').optional().messages({
+    //   'any.only': 'Gender must be either "male" or "female"'
+    // }),
   });
   
 const loginValidationSchema = Joi.object({

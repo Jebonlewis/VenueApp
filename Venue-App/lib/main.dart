@@ -38,12 +38,12 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => SplashScreen(),
         '/userHome': (context) => ExploreScreen(), // User home screen
-        '/vendorHome': (context) => BranchDetails(),
-        //'/vendorHome': (context) => LogoutScreen(),
+        //'/vendorHome': (context) => BranchDetails(),
+        '/vendorHome': (context) => LogoutScreen(),
         //'/vendorHome': (context) => DisplayImages(email: 'jebontarunlewis63@gmail.com'),
        // '/venueHome':(context) =>  FormPage(numberOfHalls: 3), 
        //'/vendorHome':(context) =>  LogoutScreen(),
-       '/venueHome':(context) =>  LogoutScreen(),
+       '/venueHome':(context) =>  HomeVenue(),
         '/chooseScreen': (context) => ChooseScreen(),
       },
       onUnknownRoute: (settings) {

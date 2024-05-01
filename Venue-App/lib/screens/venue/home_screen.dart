@@ -31,41 +31,82 @@ class _HomeVenueState extends State<HomeVenue> {
   String? selectedCity;
   List<String> cityList = [
     'Udupi',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
+    'Manipal',
+    'Mumbai',
+    'Delhi',
+    'Bangalore',
+    'Hyderabad',
+    'Ahmedabad',
+    'Chennai',
+    'Kolkata',
+    'Surat',
+    'Pune',
+    'Jaipur',
+    'Lucknow',
+    'Kanpur',
+    'Nagpur',
+    'Indore',
+    'Thane',
+    'Bhopal',
+    'Visakhapatnam',
+    'Pimpri-Chinchwad',
+    'Patna',
+    'Vadodara'
   ];
   String? selectedState;
   List<String> stateList = [
-    'karnataka',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
+    'Andhra Pradesh',
+    'Arunachal Pradesh',
+    'Assam',
+    'Bihar',
+    'Chhattisgarh',
+    'Goa',
+    'Gujarat',
+    'Haryana',
+    'Himachal Pradesh',
+    'Jharkhand',
+    'Karnataka',
+    'Kerala',
+    'Madhya Pradesh',
+    'Maharashtra',
+    'Manipur',
+    'Meghalaya',
+    'Mizoram',
+    'Nagaland',
+    'Odisha',
+    'Punjab',
+    'Rajasthan',
+    'Sikkim',
+    'Tamil Nadu',
+    'Telangana',
+    'Tripura',
+    'Uttar Pradesh',
+    'Uttarakhand',
+    'West Bengal'
     // Add more cities as needed
   ];
   String? selectedCountry;
   List<String> countryList = [
     'India',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
+    'United States',
+    'China',
+    'Japan',
+    'Germany',
+    'United Kingdom',
+    'France',
+    'Brazil',
+    'Italy',
+    'Canada',
+    'South Korea',
+    'Russia',
+    'Australia',
+    'Spain',
+    'Mexico',
+    'Indonesia',
+    'Netherlands',
+    'Saudi Arabia',
+    'Turkey',
+    'Switzerland'
   ];
 
  @override
@@ -202,17 +243,29 @@ void _searchAndSaveLocation() {
       var response = await request.close().timeout(Duration(seconds: 60));
       
 
-      if (response.statusCode == 201) {
-        // Venue details stored successfully
-        print('Venue details stored successfully');
-      } else {
-        // Error storing venue details
-        print('Error storing venue details');
-      }
-    } catch (error) {
-      // Handle error
-      print('Error: $error');
+     if (response.statusCode == 200) {
+      // Venue details stored successfully
+      print('Venue details stored successfully');
+      // Display a success message in the UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Venue details stored successfully')),
+      );
+    } else {
+      // Error storing venue details
+      print('Error storing venue details');
+      // Display a failure message in the UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to store venue details')),
+      );
     }
+  } catch (error) {
+    // Handle error
+    print('Error: $error');
+    // Display a generic error message in the UI
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred')),
+    );
+  }
   }
 
   int _selectedIndex = 0;

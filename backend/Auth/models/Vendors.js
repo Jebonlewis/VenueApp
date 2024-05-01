@@ -67,6 +67,15 @@ const vendorSchema = new mongoose.Schema({
   'Wedding',
   'Corporate',]
 },
+otp:{
+    type:Number,
+    default: null,
+  },
+  otpExpires: {
+    type: Date,
+    default: null,
+  },
+
   branchName: {
       type: String,
       default: null

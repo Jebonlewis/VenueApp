@@ -11,7 +11,7 @@ routerVenueRegister.post('/', async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         console.log('4');
-        console.error('Error occurred during vendor registration:', error);
+        console.error('Error occurred during venue registration:', error);
         res.status(400).json({ error: error.message });
     }
 });

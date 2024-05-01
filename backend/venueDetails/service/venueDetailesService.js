@@ -3,15 +3,23 @@ const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
 const config = require('../../Auth/config/authConfig');
 
-async function createHallDetails(hallDetails, imageFile, venue_id) {
+const fs = require('fs');
+const multer  = require('multer');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Specify the directory where images will be stored
+      cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+      // Generate a unique filename using the document id
+      const filename = file.originalname; // You can customize the filename if needed
+      cb(null, filename);
+    }
+  });
+
+async function createHallDetails(hallDetails,File,venue_id) {
     try {
-        await mongoose.connect(config.db.dbUrl);
-
-        // Once connected, initialize GridFSBucket
-        const gfs = new GridFSBucket(mongoose.connection.db, {
-            bucketName: 'venueHallImages'
-        });
-
+        
         // Find the VenueDetails document by venue_id
         let venueDetails = await VenueDetails.findOne({ venue_id });
         
@@ -30,13 +38,14 @@ async function createHallDetails(hallDetails, imageFile, venue_id) {
         // Save the updated VenueDetails document
         const updatedVenueDetails = await venueDetails.save();
 
-        // If an image file is provided, store it in GridFS
-        const writeStream = gfs.openUploadStream(imageFile.originalname, {
-            metadata: { venueDetails_id:updatedVenueDetails._id,halls_id:updatedVenueDetails.halls[updatedVenueDetails.halls.length - 1]._id  }            
-        });
+        // updatedVenueDetails.halls.forEach(hall => {
+        //     const hallId = hall._id.$oid;
+        //     const imagePath = `uploads/${hallId}.${File.originalname.split('.').pop()}`;
+        //     fs.renameSync(File.path, imagePath);
+        // });
 
-        writeStream.write(imageFile.buffer);
-        writeStream.end();
+        const imagePath = `uploads/${updatedVenueDetails._id}.${File.originalname.split('.').pop()}`;
+            fs.renameSync(File.path, imagePath);
 
         return { success: true, message: 'Hall details and image updated successfully' };
     } catch (error) {

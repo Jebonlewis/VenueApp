@@ -11,6 +11,8 @@ import 'package:venue/config.dart';
 import 'package:venue/screens/vendor/add_items.dart';
 import 'package:venue/screens/choose_screen.dart';
 import 'package:http/io_client.dart';
+import 'package:venue/components/token_manager.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class BranchDetails extends StatefulWidget {
   const BranchDetails({Key? key}) : super(key: key);
@@ -21,6 +23,7 @@ class BranchDetails extends StatefulWidget {
 
 class _BranchDetailsState extends State<BranchDetails> {
   TextEditingController _searchController = TextEditingController();
+  late String _email;
   String ipAddress=Configip.ip;
   String _selectedPlace = '';
   String _selectedLocation = '';
@@ -50,6 +53,12 @@ class _BranchDetailsState extends State<BranchDetails> {
     super.dispose();
   }
 
+   @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
   void _saveLocation(String location, String latitude, String longitude) {
     print('Location saved: $location');
     print('Latitude saved: $latitude');
@@ -57,6 +66,18 @@ class _BranchDetailsState extends State<BranchDetails> {
     print('Contry saved: $selectedCountry');
     print('State saved: $selectedState');
 
+  }
+
+  Future<void> _fetchUserData() async {
+    String? token = await TokenManager().getToken();
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      setState(() {
+        _email = decodedToken['email'];
+      });
+    } else {
+      print('No token found');
+    }
   }
 
   Future<void> _getSuggestions(String query) async {
@@ -218,7 +239,7 @@ class _BranchDetailsState extends State<BranchDetails> {
           'POST', Uri.parse('http://$ipAddress:443/branch'));
 
       // Add JSON data to multipart request
-      multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
+      multipartRequest.fields['email'] = _email;
       multipartRequest.fields['branchDetails'] = jsonEncode({
         'branchName': branchName,
         'aboutBranch': aboutBranch,

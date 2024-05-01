@@ -9,6 +9,7 @@ import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
 import 'package:venue/config.dart';
 import 'package:venue/screens/logout.dart';
+import 'package:venue/screens/otp_page.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/vendor/vendor_register.dart';
 import 'package:venue/screens/reset_password.dart';
@@ -276,7 +277,7 @@ Future<void> venueLogin() async {
                           onTap: () {
                             NavigationUtils.navigateToPage(
                               context,
-                              ResetPassword(),
+                              OtpPage(),
                             );
                           },
                           child: Text(

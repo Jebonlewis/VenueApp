@@ -10,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/io_client.dart';
 import 'package:http/http.dart' as http;
+import 'package:venue/components/token_manager.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AdditemDetails extends StatefulWidget {
   const AdditemDetails({Key? key}) : super(key: key);
@@ -20,6 +22,7 @@ class AdditemDetails extends StatefulWidget {
 
 class _AdditemDetailsState extends State<AdditemDetails> {
   File? _image;
+  late String _email;
   final picker = ImagePicker();
   final TextEditingController _itemNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -37,10 +40,28 @@ class _AdditemDetailsState extends State<AdditemDetails> {
     });
   }
 
+   @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+  
+  Future<void> _fetchUserData() async {
+    String? token = await TokenManager().getToken();
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      setState(() {
+        _email = decodedToken['email'];
+      });
+    } else {
+      print('No token found');
+    }
+  }
   Future<void> sendItemDetailsToBackend() async {
 
 
     try {
+      print('email, ${_email}');
       String itemName=_itemNameController.text;
       String aboutItem=_descriptionController.text;
       String price=_priceController.text;
@@ -60,7 +81,7 @@ class _AdditemDetailsState extends State<AdditemDetails> {
     var multipartRequest = http.MultipartRequest(
         'POST', Uri.parse('http://$ipAddress:443/item'));
 
-      multipartRequest.fields['email'] = 'jebontarunlewis63@gmail.com';
+      multipartRequest.fields['email'] = _email;
       multipartRequest.fields['itemDetails'] = jsonEncode({
       'itemName': itemName,
       'aboutItem': aboutItem,

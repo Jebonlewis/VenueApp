@@ -4,24 +4,35 @@ const Venue = require('../../Auth/models/venue');
 const VenueLocation = require('../../location/models/venueLocation');
 const routerNoofHalls = express.Router();
 const routerHallDetails = express.Router();
+const {createHallDetails}=require('../service/venueDetailesService');
+const fs = require('fs');
 const multer  = require('multer');
-const venueService=require('../service/venueDetailesService');
-
-const storage = multer.memoryStorage(); // Store files in memory
-
-// Initialize multer with the defined storage
-const upload = multer({ storage: storage, limits: { fileSize: 80 * 1024 * 1024 } });
-
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      // Specify the directory where images will be stored
+      cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+      // Generate a unique filename using the document id
+      const filename = file.originalname; // You can customize the filename if needed
+      cb(null, filename);
+    }
+  });
+  
+  const upload = multer({ storage: storage });
 routerNoofHalls.post('/', async (req, res) => {
   let savedVenueLocation; // Declare variable to hold saved VenueLocation
   try {
     const { email, VenueName, latitude, longitude, address, country, state, city } = req.body;
+    if(!VenueName || !latitude || !longitude || !address || !country || !state || !city){
+      throw new Error('All fieds are required')
+    }
     const venue = await Venue.findOne({ email: email }, '_id');
     const venue_id = venue._id;
     const existingVenue = await VenueDetails.findOne({venue_id });
     if (existingVenue){
       console.log('venue already exist');
-      res.status(500).json({ message: 'venue already exist' });
+      throw new Error('Venue already exist')
     }
     else{
 
@@ -62,7 +73,7 @@ routerNoofHalls.post('/', async (req, res) => {
     // Update the associated VenueLocation with the ObjectId of the saved VenueDetails
     await VenueLocation.findByIdAndUpdate(location_id, { venueDetails_id: savedVenueDetails._id });
 
-    res.status(201).json({ message: 'Venue details stored successfully' });
+    res.status(200).json({ message: 'Venue details stored successfully' });
   } 
 }
 catch (error) {
@@ -78,15 +89,9 @@ catch (error) {
 routerHallDetails.post('/',upload.single('image') , async (req, res) => {
   try {
     console.log("called hall");
-    if (req.file) {
-      console.log("imageFile:", req.file);
-      const imageFile = {
-          // buffer: fs.readFileSync(req.file.path), // Read file contents
-          // originalname: req.file.originalname // Retain original name
-          buffer: req.file.buffer, // Access the file buffer directly
-          originalname: req.file.originalname 
-      };
-  
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file received' });
+  }
     const {
       email,
       hallDetails
@@ -99,9 +104,9 @@ routerHallDetails.post('/',upload.single('image') , async (req, res) => {
     const venueDetails = await VenueDetails.findOne({ venue_id });
 
     if (!venueDetails) {
-      return res.status(404).json({ message: "Venue details not found" });
+      return res.status(400).json({ message: "Venue details not found" });
     }
-    const newItem = await venueService.createHallDetails(hallDetails,imageFile,venue_id);
+    const newItem = await createHallDetails(hallDetails,req.file,venue_id);
     // Add hall details to the existing VenueDetails document
     
 
@@ -109,10 +114,7 @@ routerHallDetails.post('/',upload.single('image') , async (req, res) => {
     const updatedVenueDetails = await venueDetails.save();
 
     res.status(201).json({ message: 'Added hall details successfully' });// Send the updated VenueDetails as response
-  }
-  else {
-      console.log("No imageFile received");
-    }
+  
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });

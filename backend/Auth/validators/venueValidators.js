@@ -21,7 +21,9 @@ const venueRegisterValidation = Joi.object({
       then: Joi.string().valid(Joi.ref('password')).required().messages({ 'any.only': 'Passwords must match' }),
       otherwise: Joi.string().allow('').optional()
     }),
-    authenticationType: Joi.string().valid('google', 'facebook', 'simple').optional()
+    authenticationType: Joi.string().valid('google', 'facebook', 'simple').optional(),
+    otp: Joi.number().optional(),
+    otpExpires: Joi.date().optional(),
   });
   
 const venueLoginValidation = Joi.object({

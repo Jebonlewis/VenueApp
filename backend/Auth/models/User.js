@@ -29,7 +29,17 @@ const userSchema = new mongoose.Schema({
   otpExpires: {
     type: Date,
     default: null,
-  }
+  },
+  contact: {
+  type:String,
+  default:null
+  } ,// New field for contact
+  gender: {
+    type: String,
+    enum: ['male', 'female'],
+    lowercase: true,
+    default:null // Ensure the values are stored in lowercase
+  },
 },
 {
   timestamps: true, // Add timestamps (createdAt, updatedAt)

@@ -3,12 +3,15 @@
 // routes/authResetRoutes.js
 
 const express = require('express');
-const routerReset = express.Router();
-const { generateAndSendOTP, resetPasswordWithOTP } = require('../service/resetService');
+const routerSendOtp = express.Router();
+const routerValidateOtp = express.Router();
+const routerChangePassword = express.Router();
+const { generateAndSendOTP, validateOtp,changePassword } = require('../service/resetService');
 
 // Request OTP for password reset
-routerReset.post('/', async (req, res) => {
+routerSendOtp.post('/', async (req, res) => {
   try {
+    console.log("otp send");
     const { email } = req.body;
     const otp = await generateAndSendOTP(email);
     res.status(200).json({ message: 'OTP sent successfully', otp });
@@ -19,16 +22,35 @@ routerReset.post('/', async (req, res) => {
 });
 
 // Reset password using OTP
-routerReset.post('/reset', async (req, res) => {
+routerValidateOtp.post('/', async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
-    const result = await resetPasswordWithOTP(email, otp, newPassword);
-    res.status(200).json({ message: result });
+    console.log('called');
+    const { email, otp } = req.body;
+    const result = await validateOtp(email, otp);
+    res.status(200).json({ result });
   } catch (error) {
     console.error('Error occurred during password reset with OTP:', error);
     res.status(400).json({ error: error.message });
   }
 });
 
-module.exports = routerReset;
+routerChangePassword.post('/',async(req,res)=>{
+  
+  try {
+    console.log("called");
+    const {email, newPassword, confirmPassword } = req.body;
+    console.log(email,newPassword,confirmPassword);
+    const result = await changePassword(email,newPassword, confirmPassword);
+    res.status(200).json({ message: result });
+  } catch (error) {
+    console.error('Error occurred during password reset with OTP:', error);
+    res.status(400).json({ error: error.message });
+  }
+
+});
+
+module.exports = {routerSendOtp,
+  routerValidateOtp,
+  routerChangePassword
+};
 
