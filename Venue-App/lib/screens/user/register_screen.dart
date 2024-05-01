@@ -22,9 +22,9 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-    
   String ipAddress=Configip.ip;
   bool _obscureText = true;
+  bool  _obscure1Text=true;
   String? _emailValidationError;
   String? _passwordValidationError;
   String? _confirmPasswordValidationError;
@@ -45,10 +45,11 @@ class _SignUpState extends State<SignUp> {
     return null;
   }
 
-  String? _validateEmail(String value) {
+ String? _validateEmail(String value) {
     final RegExp emailRegex =
         RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
     if (!emailRegex.hasMatch(value)) {
+      // showError(context, 'Enter A Valid Email');
       setState(() {
         // Show Snackbar if the name is empty
         //  showSnackbarError('Enter a valid email address');
@@ -61,26 +62,113 @@ class _SignUpState extends State<SignUp> {
       setState(() {
         _emailValidationError = null;
       });
+      // showSuccess(context, 'Email is Valid');
+      return null;
     }
-    return null; // No error
+    // No error
+  }
+void _showValidationRules(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.blue,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Validation Rules.',
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Icon(
+                  Icons.cancel,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '1. Password should contain at least 10 characters.',
+                style: TextStyle(
+                    color: _passwordController.text.length >= 10
+                        ? Colors.green
+                        : Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '2. Password should contain at least one uppercase letter.',
+                style: TextStyle(
+                    color: _passwordController.text.contains(RegExp(r'[A-Z]'))
+                        ? Colors.green
+                        : Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '3. Password should contain at least one special character.',
+                style: TextStyle(
+                    color: _passwordController.text
+                            .contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))
+                        ? Colors.green
+                        : Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   String? _validatePassword(String value) {
     if (value.length < 10) {
+      // showError(context, 'Password Should Atleast Contain 10 Characters');
       setState(() {
         _passwordValidationError =
             'Password Should Atleast Contain 10 Characters';
+       
       });
+
+      return null;
+    } else if (!value.contains(RegExp(r'[A-Z]'))) {
+      // showError(context, 'Password Should Contain Atleast One Uppercase Letter');
+      setState(() {
+        _passwordValidationError =
+            'Password Should Contain Atleast One Uppercase Letter';
+      });
+      return null;
+    } else if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      // showError(context, 'Password Should Contain Atleast One Special Character');
+      setState(() {
+        _passwordValidationError =
+            'Password Should Contain Atleast One Special Character';
+      });
+      return null;
     } else {
+      // If all conditions are met, clear the error message and show success message
       setState(() {
         _passwordValidationError = null;
       });
+      // _passwordValidationError = 'All Validations Are Met';
+
+      // showSuccess(context, 'All validations Are Met');
+      return null;
     }
-    return null;
   }
 
   String? _validateConfirmPassword(String value) {
     if (value != _passwordController.text) {
+      //  showError(context, 'Password Do Not Match');
       setState(() {
         _confirmPasswordValidationError = 'Passwords do not match';
       });
@@ -193,7 +281,7 @@ Future<void> signUp() async {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                  Container(
+                 Container(
                     alignment: Alignment.topLeft,
                     padding: EdgeInsets.only(left: paddingleft),
                     child: Container(
@@ -202,10 +290,9 @@ Future<void> signUp() async {
                       height: 60,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.grey.withOpacity(0.4),
-                        ),
-                      ),
+                        border: Border.all( color: _nameValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),)),
                       child: Row(
                         children: [
                           Icon(
@@ -230,20 +317,7 @@ Future<void> signUp() async {
                       ),
                     ),
                   ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _nameValidationError != null
-                        ? Text(
-                            _nameValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
-                  ),
+                  
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Container(
                     alignment: Alignment.topLeft,
@@ -255,7 +329,9 @@ Future<void> signUp() async {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: Colors.grey.withOpacity(0.4),
+                          color: _emailValidationError != null
+                              ? Colors.red
+                              : Colors.grey.withOpacity(0.4),
                         ),
                       ),
                       child: Row(
@@ -283,85 +359,91 @@ Future<void> signUp() async {
                       ),
                     ),
                   ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _emailValidationError != null
-                        ? Text(
-                            _emailValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
-                  ),
+                 
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: Container(
-                      padding: EdgeInsets.only(left: paddingleft),
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.withOpacity(0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.lock,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _passwordController,
-                              decoration: InputDecoration(
-                                hintText: "Your Password",
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (value) {
-                                // Call the validation method when the text changes
-                                _validatePassword(value);
-                              },
+                   Row(
+                    children: [
+                      Container(
+                        alignment: Alignment.topLeft,
+                        padding: EdgeInsets.only(left: paddingleft),
+                        child: Container(
+                          padding: EdgeInsets.only(left: paddingleft),
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _passwordValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),
                             ),
                           ),
-                          IconButton(
-                            icon: Icon(
-                              _obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.lock,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: _passwordController,
+                                  decoration: InputDecoration(
+                                    hintText: "Your Password",
+                                    border: InputBorder.none,
+                                  ),
+                                  obscureText: _obscureText,
+                                  onChanged: (value) {
+                                    // Call the validation method when the text changes
+                                    _validatePassword(value);
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  _obscureText
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureText = !_obscureText;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          _showValidationRules(context);
+                        },
+                        child: Container(
+                          child: Center(
+                            child: Icon(
+                              Icons.lock_open_rounded,
                               color: Colors.grey,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _obscureText = !_obscureText;
-                              });
-                            },
                           ),
-                        ],
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _passwordValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _passwordValidationError != null
-                        ? Text(
-                            _passwordValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
+                    ],
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  Container(
+                   Container(
                     alignment: Alignment.topLeft,
                     padding: EdgeInsets.only(left: paddingleft),
                     child: Container(
@@ -370,8 +452,10 @@ Future<void> signUp() async {
                       height: 60,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.withOpacity(0.4)),
-                      ),
+                        border: Border.all( color: _confirmPasswordValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),)),
+                      
                       child: Row(
                         children: [
                           Icon(
@@ -386,6 +470,7 @@ Future<void> signUp() async {
                                 hintText: "Confirm Password",
                                 border: InputBorder.none,
                               ),
+                               obscureText: _obscure1Text,
                               onChanged: (value) {
                                 // Call the validation method when the text changes
                                 _validateConfirmPassword(value);
@@ -394,34 +479,20 @@ Future<void> signUp() async {
                           ),
                           IconButton(
                             icon: Icon(
-                              _obscureText
+                              _obscure1Text
                                   ? Icons.visibility
                                   : Icons.visibility_off,
                               color: Colors.grey,
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureText = !_obscureText;
+                                _obscure1Text = !_obscure1Text;
                               });
                             },
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(
-                      height:
-                          1), // Add some spacing between the input and the error text
-                  Container(
-                    alignment: Alignment.topLeft,
-                    padding: EdgeInsets.only(left: paddingleft),
-                    child: _confirmPasswordValidationError != null
-                        ? Text(
-                            _confirmPasswordValidationError!,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          )
-                        : SizedBox(), // Use SizedBox to provide an empty widget when there's no error
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   Padding(

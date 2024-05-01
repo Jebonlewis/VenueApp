@@ -27,8 +27,15 @@ class _HomeVenueState extends State<HomeVenue> {
     bool _isSearching = false;
   final TextEditingController _venuenameController = TextEditingController();
   final TextEditingController _venueaddressController = TextEditingController();
+  final TextEditingController _numberofhallsController =
+      TextEditingController();
+ final TextEditingController _venuelocationController = TextEditingController();
   int numberOfHalls = 0;
   String? selectedCity;
+  String? _venuenameValidationError;
+  String? _venueaddressValidationError;
+  String? _venuelocationValidationError;
+  String? _venuenumberofhallsValidationError;
   List<String> cityList = [
     'Udupi',
     'Manipal',
@@ -110,10 +117,12 @@ class _HomeVenueState extends State<HomeVenue> {
   ];
 
  @override
-  void dispose() {
+   void dispose() {
     _searchController.dispose();
     _venuenameController.dispose();
     _venueaddressController.dispose();
+    _venuelocationController.dispose();
+    _numberofhallsController.dispose();
     super.dispose();
   }
 
@@ -177,7 +186,13 @@ void _searchAndSaveLocation() {
       print('Error searching location: $e');
     }
   }
-
+void _onSuggestionTapped(String suggestion) {
+    setState(() {
+      _searchController.text = suggestion;
+      _searchLocation(suggestion);
+      _suggestions.clear(); // Clear suggestions after tapping on one
+    });
+  }
   Future<void> _getPlaceDetails(String placeId) async {
     try {
       final apiKey = 'AIzaSyDMWSgHTmFD9UdPTYIvLkXww_eyRdI5ggA';
@@ -296,13 +311,99 @@ void _searchAndSaveLocation() {
     });
   }
 
+ String? _validateVenueName(String value) {
+    // You can adjust the regular expression as per your name validation requirements
+    final RegExp nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+    if (!nameRegex.hasMatch(value)) {
+      setState(() {
+        _venuenameValidationError = 'Enter Your Full Name';
+      });
+    } else {
+      setState(() {
+        _venuenameValidationError = null;
+      });
+    }
+    return null;
+  }
+
+String? _validatenumberofhalls(String value) {
+    // Try parsing the input as an integer
+    if (int.tryParse(value) == null) {
+      setState(() {
+        _venuenumberofhallsValidationError = 'Enter a valid number';
+      });
+    } else {
+      setState(() {
+        _venuenumberofhallsValidationError = null;
+      });
+    }
+    return null;
+  }
+
+  String? _validateVenueAddress(String value) {
+    // You can adjust the regular expression as per your name validation requirements
+    final RegExp nameRegex = RegExp(r'^[a-zA-Z0-9\s\.,\-#]+$');
+    if (!nameRegex.hasMatch(value)) {
+      setState(() {
+        _venueaddressValidationError = 'Enter Your Full Name';
+      });
+    } else {
+      setState(() {
+        _venueaddressValidationError = null;
+      });
+    }
+    return null;
+  }
+
+  String? _validateVenuelocation(String value) {
+    // Adjust the regular expression to match the format of your address
+    final RegExp addressRegex = RegExp(
+        r'^[a-zA-Z0-9\s\.,\-#]+$'); // Allow letters, numbers, spaces, commas, periods, hyphens, and pound signs
+
+    if (!addressRegex.hasMatch(value)) {
+      setState(() {
+        _venuelocationValidationError =
+            'Enter a valid location'; // Update error message as needed
+      });
+    } else {
+      setState(() {
+        _venuelocationValidationError = null;
+      });
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     double paddingleft = screenSize.width * 0.05;
     return Scaffold(
+       appBar: AppBar(
+        elevation:0,
+        backgroundColor: Colors.white.withOpacity(0.1),
+         leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
+          onPressed: () {
+            // Navigator.pop(context);
+          },
+        ),
+        title:Text('Venue Details',style: TextStyle(color: Colors.black),)
+      ),
       backgroundColor: Colors.white,
-      body: Center(
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned(
+            right: 0,
+            top: MediaQuery.of(context).size.height * 0.06,
+            child: Image.asset(
+              'assets/images/Vectorbg1.png',
+            ),
+          ),
+             Center(
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.only(
@@ -313,7 +414,7 @@ void _searchAndSaveLocation() {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'VENUE NAME',
+                  'Venue Name',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -321,28 +422,42 @@ void _searchAndSaveLocation() {
                 ),
                 SizedBox(height: 6),
                 Container(
-                  padding: EdgeInsets.only(left: paddingleft),
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.4),
-                    ),
-                  ),
-                  child: Center(
-                    child: TextField(
-                      controller: _venuenameController,
-                      decoration: InputDecoration(
-                        hintText: "Enter Venue Name",
-                        hintStyle: TextStyle(
-                          color: Color.fromARGB(255, 202, 200, 200),
+                      alignment: Alignment.topLeft,
+                      child: Container(
+                        padding: EdgeInsets.only(left: paddingleft),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _venuenameValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),
+                            )),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.home_filled,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _venuenameController,
+                                decoration: InputDecoration(
+                                  hintText: "Enter Venue Name",
+                                  border: InputBorder.none,
+                                ),
+                                onChanged: (value) {
+                                  // Call the validation method when the text changes
+                                  _validateVenueName(value);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        border: InputBorder.none,
                       ),
                     ),
-                  ),
-                ),
                 SizedBox(height: 15),
                 Container(
                   alignment: Alignment.topLeft,
@@ -673,7 +788,8 @@ void _searchAndSaveLocation() {
             ),
           ),
         ),
-       
+             ),
+        ],
 
       ),
        bottomNavigationBar: BottomNavigationBar(

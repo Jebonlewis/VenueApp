@@ -111,7 +111,7 @@ class _ChooseScreenState extends State<ChooseScreen> {
                 alignment: Alignment.topLeft,
                 padding: EdgeInsets.only(left: paddingleft),
                 child: Text(
-                  'Lorem Ipsum is simply dummy text of\nthe printing and  industry.',
+                  'Explore The Wide Range Of Venues and Vendors.',
                   style: TextStyle(fontSize: 16, color: Colors.black),
                 ),
               ),
@@ -224,7 +224,7 @@ class _ChooseScreenState extends State<ChooseScreen> {
                             SizedBox(
                                 height:
                                     MediaQuery.of(context).size.height * 0.02),
-                            Text('become a Venue',
+                            Text('Become a Venue',
                                 style: TextStyle(
                                     fontSize: 14, color: Colors.black)),
                           ],

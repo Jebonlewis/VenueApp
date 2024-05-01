@@ -9,8 +9,8 @@ void showError(BuildContext context, String message) {
             message,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontSize: 9,
+            
             ),
             textAlign: TextAlign.center,
           ),
@@ -20,14 +20,14 @@ void showError(BuildContext context, String message) {
         margin: const EdgeInsets.all(50),
         elevation: 10,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(10),
         ),
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds:2),
       ),
     );
   }
 
-  void showSuccess(BuildContext context, String message) {
+  void showSuccess(BuildContext context, String message,) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
@@ -36,7 +36,7 @@ void showError(BuildContext context, String message) {
             message,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
