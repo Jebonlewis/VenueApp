@@ -1,13 +1,12 @@
+// form_screen.dart
 import 'dart:io';
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:venue/components/custom_button.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:http/io_client.dart';
-import 'package:http/http.dart' as http;
-import 'package:venue/config.dart';
+import 'package:venue/components/navigator.dart';
+import 'package:venue/components/snack_bar.dart';
+// import 'package:venue/screens/venue/explore_venue.dart';
 
 class FormPage extends StatefulWidget {
   final int numberOfHalls;
@@ -25,33 +24,39 @@ class _FormPageState extends State<FormPage> {
   final TextEditingController _hotelnameController = TextEditingController();
   final TextEditingController _abouthotelController = TextEditingController();
   final TextEditingController _restrictionsController = TextEditingController();
-  //final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  String ipAddress=Configip.ip;
+    final TextEditingController  _hotelrulesController=TextEditingController();
+
   final picker = ImagePicker();
-  //String? selectedCity;
+  String?  _priceValidationError;
+  String? _hotelnameValidationError;
+  String?  _abouthotelValidationError;
+  String? _hotelrulesValidationError;
+  String? _capacityValidationError;
+  String? selectedCity;
   String? selectedCategory;
   String? selectedAvailablity;
   String? selectedVenuetype;
-  // List<String> cityList = [
-  //   'New York',
-  //   'Los Angeles',
-  //   'Chicago',
-  //   'Houston',
-  //   'Phoenix',
-  //   'Philadelphia',
-  //   'San Antonio',
-  //   'San Diego',
-  //   'Dallas',
-  //   'San Jose',
-  //   // Add more cities as needed
-  // ];
+  List<String> cityList = [
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'Phoenix',
+    'Philadelphia',
+    'San Antonio',
+    'San Diego',
+    'Dallas',
+    'San Jose',
+    // Add more cities as needed
+  ];
   List<String> CategoryList = [
     'Birthday',
-    'Music',
     'Wedding',
-    'Corporate',
+    'Sounds',
+    'Party',
   ];
 
   List<String> AvailablityList = [
@@ -59,8 +64,8 @@ class _FormPageState extends State<FormPage> {
     'No',
   ];
   List<String> VenuetypeList = [
-    'veg',
-    'nonveg',
+    'Veg',
+    'Non-Veg',
   ];
 
   Future getImage() async {
@@ -74,91 +79,125 @@ class _FormPageState extends State<FormPage> {
       }
     });
   }
-  Future<void> sendHallDetailsToBackend() async {
-
-
-    try {
-      print('hall details called');
-      bool isAvailable = selectedAvailablity == 'Yes';
-      String hotelName=_hotelnameController.text;
-      String aboutName=_abouthotelController.text;
-      String restriction=_restrictionsController.text;
-      String capacity=_capacityController.text;
-      String price=_priceController.text;
-      
-
-      if (hotelName.isEmpty ||
-        aboutName.isEmpty ||restriction.isEmpty || capacity.isEmpty ||
-         price.isEmpty ) {
-      // Handle empty fields error
-      print('Please fill all fields');
-      return;
-    }
-    final ioClient = IOClient(HttpClient()
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true);
-
-    // Create a multipart request
-    var multipartRequest = http.MultipartRequest(
-        'POST', Uri.parse('http://$ipAddress:443/venue/hallDetails'));
-
-      multipartRequest.fields['email'] = 'jebonlewis63@gmail.com';
-      multipartRequest.fields['hallDetails'] = jsonEncode({
-      'hotelName': hotelName,
-      'aboutName': aboutName,
-      'restriction':restriction,
-      'capacity':capacity,
-      'price': price,
-      'availability':isAvailable,
-      'service_category':selectedCategory,
-      'venue_type':selectedVenuetype,
+ String? _validateHotelName(String value) {
+    // You can adjust the regular expression as per your name validation requirements
+    final RegExp nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+    if (!nameRegex.hasMatch(value)) {
+      setState(() {
+        _hotelnameValidationError = 'Enter Your Full Name';
       });
-
-       if (_image != null) {
-      var imageFile = await http.MultipartFile.fromPath(
-        'image',
-        _image!.path,
-        contentType: MediaType('image', 'jpeg'),
-      );
-      multipartRequest.files.add(imageFile);
     } else {
-      print('No image selected.');
+      setState(() {
+        _hotelnameValidationError = null;
+      });
     }
+    return null;
+  }
+String? _validateAboutHotel(String value) {
+    // You can adjust the regular expression as per your name validation requirements
+    final RegExp nameRegex = RegExp(r'^[a-zA-Z0-9\s\.,\-#]+$');
+    if (!nameRegex.hasMatch(value)) {
+      setState(() {
+        _abouthotelValidationError = 'Enter Your Full Name';
+      });
+    } else {
+      setState(() {
+        _abouthotelValidationError = null;
+      });
+    }
+    return null;
+  }
 
-    // Send the multipart request using the custom IOClient
-    var streamedResponse =
-        await ioClient.send(multipartRequest).timeout(Duration(seconds: 60));
+  String? _validateHotelRules(String value) {
+    // You can adjust the regular expression as per your name validation requirements
+    final RegExp nameRegex = RegExp(r'^[a-zA-Z0-9\s\.,\-#]+$');
+    if (!nameRegex.hasMatch(value)) {
+      setState(() {
+        _hotelrulesValidationError = 'Enter Your Full Name';
+      });
+    } else {
+      setState(() {
+        _hotelrulesValidationError = null;
+      });
+    }
+    return null;
+  }
+  String? _validatecapacity(value) {
+    // Try parsing the input as an integer
+    if (int.tryParse(value) == null) {
+      setState(() {
+        _capacityValidationError = 'Enter a valid number';
+      });
+    } else {
+      setState(() {
+        _capacityValidationError = null;
+      });
+    }
+    return null;
+  }
+  String? _validateprice(value) {
+    // Try parsing the input as an integer
+    if (int.tryParse(value) == null) {
+      setState(() {
+        _priceValidationError = 'Enter a valid number';
+      });
+    } else {
+      setState(() {
+        _priceValidationError = null;
+      });
+    }
+    return null;
+  }
+  String? _validateCategory(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a category';
+  }
+  return null;
+}
+String? _validateAvailablity(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a availablity';
+  }
+  return null;
+}
+String? _validateVenuetype(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a venuetype';
+  }
+  return null;
+}
 
-    // Process the response
-    var response = await http.Response.fromStream(streamedResponse);
-
-
-     if (response.statusCode == 201) {
-      // Handle successful response
-      print('halls details uploaded successfully');
-
-
-      // Display success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('halls details uploaded successfully')),
+void _checkFieldsAndNavigate() {
+  if (_hotelnameValidationError != null ||
+      _abouthotelValidationError != null ||
+      _hotelrulesValidationError != null ||
+      _capacityValidationError != null ||
+      _priceValidationError != null ||
+      selectedCategory == null ||
+      selectedAvailablity == null ||
+      selectedVenuetype == null) {
+    // Display a Snackbar indicating that all fields must be filled
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text('Please fill all fields.'),
+    //   ),
+    // );
+    showError(context, 'Enter All Feilds');
+  } else {
+    // All fields are filled, navigate to the next screen
+    if (widget.hallNumber < widget.numberOfHalls) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FormPage(
+            numberOfHalls: widget.numberOfHalls,
+            hallNumber: widget.hallNumber + 1,
+          ),
+        ),
       );
     } else {
-      // Handle unsuccessful response
-      print('Failed to upload branch details: ${response.reasonPhrase}');
-
-      // Display error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload halls details: ${response.reasonPhrase}')),
-      );
+      // Handle completion, navigate to the next screen, etc.
     }
-  } catch (e) {
-    // Handle errors
-    print('Error uploading halls details: $e');
-
-    // Display error message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error uploading branch details: $e')),
-    );
   }
 }
 
@@ -184,7 +223,18 @@ class _FormPageState extends State<FormPage> {
           style: TextStyle(color: Colors.black),
         ),
       ),
-      body: SingleChildScrollView(
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned(
+            right: 0,
+            top: MediaQuery.of(context).size.height * 0.01,
+            child: Image.asset(
+              'assets/images/Vectorbg1.png',
+            ),
+          ),
+      
+      SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -261,33 +311,46 @@ class _FormPageState extends State<FormPage> {
                   ),
                   SizedBox(height: 6),
                   Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: TextField(
-                        controller: _hotelnameController,
-                        decoration: InputDecoration(
-                          hintText: "Enter Hotel Name",
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: InputBorder.none,
+                      alignment: Alignment.topLeft,
+                      child: Container(
+                        padding: EdgeInsets.only(left: paddingleft),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: 60,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color:_hotelnameValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),
+                            )),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.home_filled,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _hotelnameController,
+                                decoration: InputDecoration(
+                                  hintText: "Enter Hotel Name",
+                                  border: InputBorder.none,
+                                ),
+                                onChanged: (value) {
+                                  // Call the validation method when the text changes
+                                  _validateHotelName(value);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+            
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -300,33 +363,46 @@ class _FormPageState extends State<FormPage> {
                   ),
                   SizedBox(height: 6),
                   Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: TextFormField(
-                      controller: _abouthotelController,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Write Something About Your Hotel",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
+                            alignment: Alignment.topLeft,
+                            child: Container(
+                              padding: EdgeInsets.only(left: paddingleft),
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: 150,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color:  _abouthotelValidationError != null
+                                        ? Colors.red
+                                        : Colors.grey.withOpacity(0.4),
+                                  )),
+                              child:
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _abouthotelController,
+                                       maxLines: null,
+                                        keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                        hintText: "Write Something About YOur Hotel",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (value) {
+                                        // Call the validation method when the text changes
+                                        _validateAboutHotel(value);
+                                      },
+                                    ),
+                                  ),
+                                
+                              
+                            ),
+                          ),
                 ],
               ),
             ),
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+             
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -339,74 +415,47 @@ class _FormPageState extends State<FormPage> {
                   ),
                   SizedBox(height: 6),
                   Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
-                    ),
-                    child: TextFormField(
-                      controller: _restrictionsController,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: "Enter Rules And Restrictions",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
+                            alignment: Alignment.topLeft,
+                            child: Container(
+                              padding: EdgeInsets.only(left: paddingleft),
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: 150,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color:  _hotelrulesValidationError != null
+                                        ? Colors.red
+                                        : Colors.grey.withOpacity(0.4),
+                                  )),
+                              child:
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _hotelrulesController,
+                                       maxLines: null,
+                                        keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                        hintText: "Enter Rules And Restrictions",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (value) {
+                                        // Call the validation method when the text changes
+                                        _validateHotelRules(value);
+                                      },
+                                    ),
+                                  ),
+                                
+                              
+                            ),
+                          ),
                 ],
               ),
             ),
-            // SizedBox(height: 15),
-            // Container(
-            //   alignment: Alignment.topLeft,
-            //   padding: EdgeInsets.only(left: paddingleft),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         'Address',
-            //         style: TextStyle(
-            //           color: Colors.black,
-            //           fontSize: 18,
-            //         ),
-            //       ),
-            //       SizedBox(height: 6),
-            //       Container(
-            //         padding: EdgeInsets.only(left: paddingleft),
-            //         width: MediaQuery.of(context).size.width * 0.9,
-            //         height: 60,
-            //         decoration: BoxDecoration(
-            //           borderRadius: BorderRadius.circular(10),
-            //           border: Border.all(
-            //             color: Colors.grey.withOpacity(0.4),
-            //           ),
-            //         ),
-            //         child: Center(
-            //           child: TextField(
-            //             controller: _addressController,
-            //             maxLines: null,
-            //             keyboardType: TextInputType.multiline,
-            //             decoration: InputDecoration(
-            //               border: InputBorder.none,
-            //               hintText: "Address Here",
-            //               hintStyle: TextStyle(color: Colors.grey),
-            //             ),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+          
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+             
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -418,36 +467,52 @@ class _FormPageState extends State<FormPage> {
                     ),
                   ),
                   SizedBox(height: 6),
-                  Container(
-                    padding: EdgeInsets.only(left: paddingleft),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
+                   Container(
+                      padding: EdgeInsets.only(left: paddingleft),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: 60,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: _capacityValidationError != null
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.4),
+                          )),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.people,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _capacityController,
+                              decoration: const InputDecoration(
+                                hintText: "Enter Capacity",
+                                border: InputBorder.none,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _validatecapacity(value);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Center(
-                      child: TextField(
-                        controller: _capacityController,
-                        keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          hintText: "Enter Capacity",
-                          hintStyle: TextStyle(color: Colors.grey),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+            
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -466,22 +531,29 @@ class _FormPageState extends State<FormPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
+                            color: selectedCategory == null
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.4),
+                          )
                     ),
                     child: Center(
                       child: DropdownButtonFormField<String>(
+                        
                         decoration: InputDecoration(
                           border: InputBorder.none,
+                          
                           hintText: "Select Category",
                           hintStyle: TextStyle(color: Colors.grey),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
                         ),
-                        value: selectedCategory,
+                      value: selectedCategory,
+                     
                         onChanged: (String? value) {
                           setState(() {
                             selectedCategory = value;
                           });
                         },
+                          validator: _validateCategory,
                         items: CategoryList.map((String Categories) {
                           return DropdownMenuItem<String>(
                             value: Categories,
@@ -497,7 +569,7 @@ class _FormPageState extends State<FormPage> {
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+             
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -515,9 +587,11 @@ class _FormPageState extends State<FormPage> {
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
+                     border: Border.all(
+                            color: selectedAvailablity == null
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.4),
+                          )
                     ),
                     child: Center(
                       child: DropdownButtonFormField<String>(
@@ -525,6 +599,7 @@ class _FormPageState extends State<FormPage> {
                           border: InputBorder.none,
                           hintText: "Select Availablity",
                           hintStyle: TextStyle(color: Colors.grey),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
                         ),
                         value: selectedAvailablity,
                         onChanged: (String? value) {
@@ -532,6 +607,7 @@ class _FormPageState extends State<FormPage> {
                             selectedAvailablity = value;
                           });
                         },
+                         validator: _validateAvailablity,
                         items:
                             AvailablityList.map((String selectedAvailablity) {
                           return DropdownMenuItem<String>(
@@ -548,7 +624,7 @@ class _FormPageState extends State<FormPage> {
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+             
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -567,8 +643,10 @@ class _FormPageState extends State<FormPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
+                            color: selectedVenuetype == null
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.4),
+                          )
                     ),
                     child: Center(
                       child: DropdownButtonFormField<String>(
@@ -576,13 +654,16 @@ class _FormPageState extends State<FormPage> {
                           border: InputBorder.none,
                           hintText: "Select Venue Type",
                           hintStyle: TextStyle(color: Colors.grey),
+                           contentPadding: EdgeInsets.symmetric(horizontal: 12),
                         ),
+                        
                         value: selectedVenuetype,
                         onChanged: (String? value) {
                           setState(() {
                             selectedVenuetype = value;
                           });
                         },
+                         validator: _validateVenuetype,
                         items: VenuetypeList.map((String selectedVenuetype) {
                           return DropdownMenuItem<String>(
                             value: selectedVenuetype,
@@ -595,160 +676,11 @@ class _FormPageState extends State<FormPage> {
                 ],
               ),
             ),
-            // SizedBox(height: 15),
-            // Container(
-            //   alignment: Alignment.topLeft,
-            //   padding: EdgeInsets.only(left: paddingleft),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         'City',
-            //         style: TextStyle(
-            //           color: Colors.black,
-            //           fontSize: 18,
-            //         ),
-            //       ),
-            //       SizedBox(height: 6),
-            //       Container(
-            //         padding: EdgeInsets.only(left: paddingleft),
-            //         width: MediaQuery.of(context).size.width * 0.9,
-            //         height: 60,
-            //         decoration: BoxDecoration(
-            //           borderRadius: BorderRadius.circular(10),
-            //           border: Border.all(
-            //             color: Colors.grey.withOpacity(0.4),
-            //           ),
-            //         ),
-            //         child: Center(
-            //           child: DropdownButtonFormField<String>(
-            //             decoration: InputDecoration(
-            //               border: InputBorder.none,
-            //               hintText: "Select City",
-            //               hintStyle: TextStyle(color: Colors.grey),
-            //             ),
-            //             value: selectedCity,
-            //             onChanged: (String? value) {
-            //               setState(() {
-            //                 selectedCity = value;
-            //               });
-            //             },
-            //             items: cityList.map((String city) {
-            //               return DropdownMenuItem<String>(
-            //                 value: city,
-            //                 child: Text(city),
-            //               );
-            //             }).toList(),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // SizedBox(height: 15),
-            // Container(
-            //   alignment: Alignment.topLeft,
-            //   padding: EdgeInsets.only(left: paddingleft),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         'State',
-            //         style: TextStyle(
-            //           color: Colors.black,
-            //           fontSize: 18,
-            //         ),
-            //       ),
-            //       SizedBox(height: 6),
-            //       Container(
-            //         padding: EdgeInsets.only(left: paddingleft),
-            //         width: MediaQuery.of(context).size.width * 0.9,
-            //         height: 60,
-            //         decoration: BoxDecoration(
-            //           borderRadius: BorderRadius.circular(10),
-            //           border: Border.all(
-            //             color: Colors.grey.withOpacity(0.4),
-            //           ),
-            //         ),
-            //         child: Center(
-            //           child: DropdownButtonFormField<String>(
-            //             decoration: InputDecoration(
-            //               border: InputBorder.none,
-            //               hintText: "Select State",
-            //               hintStyle: TextStyle(color: Colors.grey),
-            //             ),
-            //             value: selectedCity,
-            //             onChanged: (String? value) {
-            //               setState(() {
-            //                 selectedCity = value;
-            //               });
-            //             },
-            //             items: cityList.map((String city) {
-            //               return DropdownMenuItem<String>(
-            //                 value: city,
-            //                 child: Text(city),
-            //               );
-            //             }).toList(),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // SizedBox(height: 15),
-            // Container(
-            //   alignment: Alignment.topLeft,
-            //   padding: EdgeInsets.only(left: paddingleft),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Text(
-            //         'Country',
-            //         style: TextStyle(
-            //           color: Colors.black,
-            //           fontSize: 18,
-            //         ),
-            //       ),
-            //       SizedBox(height: 6),
-            //       Container(
-            //         padding: EdgeInsets.only(left: paddingleft),
-            //         width: MediaQuery.of(context).size.width * 0.9,
-            //         height: 60,
-            //         decoration: BoxDecoration(
-            //           borderRadius: BorderRadius.circular(10),
-            //           border: Border.all(
-            //             color: Colors.grey.withOpacity(0.4),
-            //           ),
-            //         ),
-            //         child: Center(
-            //           child: DropdownButtonFormField<String>(
-            //             decoration: InputDecoration(
-            //               border: InputBorder.none,
-            //               hintText: "Select Country",
-            //               hintStyle: TextStyle(color: Colors.grey),
-            //             ),
-            //             value: selectedCity,
-            //             onChanged: (String? value) {
-            //               setState(() {
-            //                 selectedCity = value;
-            //               });
-            //             },
-            //             items: cityList.map((String city) {
-            //               return DropdownMenuItem<String>(
-            //                 value: city,
-            //                 child: Text(city),
-            //               );
-            //             }).toList(),
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+          
             SizedBox(height: 15),
             Container(
               alignment: Alignment.topLeft,
-              padding: EdgeInsets.only(left: paddingleft),
+            
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -766,14 +698,16 @@ class _FormPageState extends State<FormPage> {
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey.withOpacity(0.4),
-                      ),
+                     border: Border.all(
+                              color:_priceValidationError != null
+                                  ? Colors.red
+                                  : Colors.grey.withOpacity(0.4),
+                            )
                     ),
                     child: Row(
                       children: [
                         Icon(
-                          Icons.attach_money_rounded,
+                          Icons.currency_rupee_sharp,
                           color: Colors.blue,
                           size: 29,
                         ),
@@ -781,14 +715,23 @@ class _FormPageState extends State<FormPage> {
                         Expanded(
                           child: TextField(
                             controller: _priceController,
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
+                           
                             decoration: InputDecoration(
                               hintText: "0.00",
                               hintStyle: TextStyle(color: Colors.grey),
                               border: InputBorder.none,
                             ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  _validateprice(value);
+                                });
+                              },
                           ),
+                          
                         ),
                       ],
                     ),
@@ -804,19 +747,25 @@ class _FormPageState extends State<FormPage> {
               child: Center(
                 child: CustomButton(
                   onPressed: () {
-                    sendHallDetailsToBackend();
-                    if (widget.hallNumber < widget.numberOfHalls) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FormPage(
-                              numberOfHalls: widget.numberOfHalls,
-                              hallNumber: widget.hallNumber + 1),
-                        ),
-                      );
-                    } else {
-                      // Handle completion, navigate to next screen, etc.
-                    }
+                    _checkFieldsAndNavigate();
+                    _validateHotelName(_hotelnameController.text);
+                    _validateAboutHotel(_abouthotelController.text);
+                    _validateHotelRules(_hotelrulesController.text);
+                     _validatecapacity(_capacityController.text);
+                     _validateprice(_priceController.text);
+                    
+                    // if (widget.hallNumber < widget.numberOfHalls) {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => FormPage(
+                    //           numberOfHalls: widget.numberOfHalls,
+                    //           hallNumber: widget.hallNumber + 1),
+                    //     ),
+                    //   );
+                    // } else {
+                    //   // Handle completion, navigate to next screen, etc.
+                    // }
                   },
                   text: 'NEXT',
                 ),
@@ -825,6 +774,24 @@ class _FormPageState extends State<FormPage> {
           ],
         ),
       ),
+        ],
+        ),
+      ),
+        ],
+      ),
+      floatingActionButton: widget.hallNumber == widget.numberOfHalls
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                //  NavigationUtils.navigateToPage(
+                //               context,
+                //             VenueExplore(),
+                //             );
+                
+              },
+              label: Text('Save'),
+              icon: Icon(Icons.save),
+            )
+          : null,
     );
   }
 }

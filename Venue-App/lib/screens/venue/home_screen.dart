@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:venue/components/custom_button.dart';
 import 'package:venue/components/navigator.dart';
+import 'package:venue/components/snack_bar.dart';
 import 'package:venue/config.dart';
 import 'package:venue/screens/overlay_filter.dart';
 import 'package:venue/screens/profile_screen.dart';
@@ -459,327 +460,236 @@ String? _validatenumberofhalls(String value) {
                       ),
                     ),
                 SizedBox(height: 15),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Address',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Container(
-                        padding: EdgeInsets.only(left: paddingleft),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Center(
-                          child: TextField(
-                            controller: _venueaddressController,
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Address Here",
-                              hintStyle: TextStyle(color: Colors.grey),
+               Container(
+                      alignment: Alignment.topLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Address',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                 SizedBox(height: 15),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Location',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Container(
-                        padding: EdgeInsets.only(left: paddingleft),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Center(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Enter Location Here",
-                              hintStyle: TextStyle(color: Colors.grey),
-                              // suffixIcon: IconButton(
-                              //   icon: Icon(Icons.search),
-                              //   onPressed: () {
-                              //     _searchLocation(_searchController.text);
-                              //   },
-                              // ),
+                          SizedBox(height: 6),
+                          Container(
+                            alignment: Alignment.topLeft,
+                            child: Container(
+                              padding: EdgeInsets.only(left: paddingleft),
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: _venueaddressValidationError != null
+                                        ? Colors.red
+                                        : Colors.grey.withOpacity(0.4),
+                                  )),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_city,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _venueaddressController,
+                                      decoration: InputDecoration(
+                                        hintText: "Enter Address",
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (value) {
+                                        // Call the validation method when the text changes
+                                        _validateVenueAddress(value);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            onChanged: (value) {
-                              _getSuggestions(value);
-                            },
                           ),
-                        ),
+                        ],
                       ),
-                      _suggestions.isNotEmpty
-                          ? Padding(
-                              padding: EdgeInsets.only(
-                                left: paddingleft,
-                                top: 6,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: _suggestions
-                                    .map((suggestion) => GestureDetector(
-                                          onTap: () {
-                                            _searchController.text =
-                                                suggestion;
-                                            _searchLocation(suggestion);
-                                          },
-                                          child: Text(
-                                            suggestion,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.blue,
-                                              
-                                            ),
-                                          ),
-                                        ))
-                                    .toList(),
-                              ),
-                            )
-                          : Container(),
-                    ],
-                  ),
-                ),
+                    ),
+                    SizedBox(height: 15),
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Location',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Container(
+                            padding: EdgeInsets.only(left: paddingleft),
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            height: 60,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _venuelocationValidationError != null
+                                      ? Colors.red
+                                      : Colors.grey.withOpacity(0.4),
+                                )),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: "Enter Location Here",
 
-                SizedBox(height: 15),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'City',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Container(
-                        padding: EdgeInsets.only(left: paddingleft),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Center(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Select City",
-                              hintStyle: TextStyle(color: Colors.grey),
+                                      // suffixIcon: IconButton(
+                                      //   icon: Icon(Icons.search),
+                                      //   onPressed: () {
+                                      //     _searchLocation(_searchController.text);
+                                      //   },
+                                      // ),
+                                    ),
+                                    onChanged: (value) {
+                                      _getSuggestions(value);
+                                      _validateVenuelocation(value);
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                            value: selectedCity,
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedCity = value;
-                              });
-                            },
-                            items: cityList.map((String city) {
-                              return DropdownMenuItem<String>(
-                                value: city,
-                                child: Text(city),
-                              );
-                            }).toList(),
                           ),
-                        ),
+                          _suggestions.isNotEmpty
+                              ? Padding(
+                                  padding: EdgeInsets.only(
+                                    left: paddingleft,
+                                    top: 6,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: _suggestions
+                                        .map((suggestion) => GestureDetector(
+                                              onTap: () {
+                                                _searchController.text =
+                                                    suggestion;
+                                                _searchLocation(suggestion);
+                                                _onSuggestionTapped(suggestion);
+                                              },
+                                              child: Text(
+                                                suggestion,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.blue,
+                                                ),
+                                              ),
+                                            ))
+                                        .toList(),
+                                  ),
+                                )
+                              : Container(),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 15),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'State',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Container(
-                        padding: EdgeInsets.only(left: paddingleft),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Center(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Select State",
-                              hintStyle: TextStyle(color: Colors.grey),
-                            ),
-                            value: selectedState,
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedState = value;
-                              });
-                            },
-                            items: stateList.map((String state) {
-                              return DropdownMenuItem<String>(
-                                value: state,
-                                child: Text(state),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 15),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Country',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Container(
-                        padding: EdgeInsets.only(left: paddingleft),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Center(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Select Country",
-                              hintStyle: TextStyle(color: Colors.grey),
-                            ),
-                            value: selectedCountry,
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedCountry = value;
-                              });
-                            },
-                            items: countryList.map((String country) {
-                              return DropdownMenuItem<String>(
-                                value: country,
-                                child: Text(country),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 15),
-                Text(
-                  'ADD NUMBER OF HALLS',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.4),
-                      width: 1,
                     ),
-                  ),
-                  child: Center(
-                    child: TextField(
+                    SizedBox(height: 15),
+                    Text(
+                      'Add Number Of Halls',
                       textAlign: TextAlign.center,
-                      decoration: const InputDecoration(
-                        hintText: "Numbers..",
-                        hintStyle: TextStyle(
-                          color: Color.fromARGB(255, 202, 200, 200),
-                        ),
-                        border: InputBorder.none,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
                       ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          numberOfHalls = int.tryParse(value) ?? 0;
-                        });
-                      },
                     ),
-                  ),
-                ),
+                    SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.only(left: paddingleft),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: 60,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: _venuenumberofhallsValidationError != null
+                                ? Colors.red
+                                : Colors.grey.withOpacity(0.4),
+                          )),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.add,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _numberofhallsController,
+                              decoration: const InputDecoration(
+                                hintText: "Enter Number Of Halls",
+                                border: InputBorder.none,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  numberOfHalls = int.tryParse(value) ?? 0;
+                                  _validatenumberofhalls(value);
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 SizedBox(height: 10),
                 Center(
                   child: CustomButtonSmall(
                     onPressed: () {
+                       _validateVenueName(_venuenameController.text);
+                            _validateVenueAddress(_venueaddressController.text);
+                            _validateVenuelocation(_searchController.text);
+                            _validatenumberofhalls(
+                                _numberofhallsController.text);
+                            _saveLocation(
+                                _selectedPlace, _latitude, _longitude);
+                            if (_venuenameValidationError != null ||
+                                _venueaddressValidationError != null ||
+                                _venuelocationValidationError != null ||
+                                _venuenumberofhallsValidationError != null) {
+                              // Display a Snackbar if any validation error exists
+                              showError(context, 'Enter All Feilds');
+                            } else {
+                              // All fields are valid, navigate to the other page
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      FormPage(numberOfHalls: numberOfHalls),
+                                ),
+                              );
+                            }
                       _saveLocation(_selectedPlace, _latitude, _longitude);
                       _sendVenueDetails();
-                      if (numberOfHalls > 0) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                FormPage(numberOfHalls: numberOfHalls),
-                          ),
-                        );
-                      } else {
-                        // Handle case when no halls are entered
-                      }
+                      // if (numberOfHalls > 0) {
+                      //   Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //       builder: (context) =>
+                      //           FormPage(numberOfHalls: numberOfHalls),
+                      //     ),
+                      //   );
+                      // } else {
+                      //   // Handle case when no halls are entered
+                      // }
                     },
                     text: 'GO',
                   ),
